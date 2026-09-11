@@ -3,7 +3,15 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient
+from app.database.database import engine, Base, apply_migrations
+import app.models
+from app.utils.seed_data import seed_database
 from app.main import app
+
+# Ensure tables & migrations are in place
+Base.metadata.create_all(bind=engine)
+apply_migrations()
+seed_database()
 
 client = TestClient(app)
 
@@ -25,6 +33,25 @@ def test_login_and_roles():
     me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me_res.status_code == 200
     assert me_res.json()["email"] == "farmer@agrivision.com"
+
+def test_user_preferred_language():
+    # Farmer login
+    login_res = client.post("/api/v1/auth/login", json={"email": "farmer@agrivision.com", "password": "Farmer@123"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update preferred language to Marathi
+    update_res = client.put("/api/v1/auth/profile", json={"preferred_language": "mr"}, headers=headers)
+    assert update_res.status_code == 200
+    assert update_res.json()["preferred_language"] == "mr"
+
+    # Verify me endpoint reflects Marathi
+    me_res = client.get("/api/v1/auth/me", headers=headers)
+    assert me_res.status_code == 200
+    assert me_res.json()["preferred_language"] == "mr"
+
+    # Reset back to English
+    client.put("/api/v1/auth/profile", json={"preferred_language": "en"}, headers=headers)
 
 def test_crops_and_recommendations():
     # Crops catalog
@@ -52,6 +79,61 @@ def test_profit_calculator():
     assert "cost_breakdown" in data
     assert "estimated_profit_inr" in data
 
+def test_what_if_simulator():
+    payload = {
+        "current": {
+            "crop_name": "Tomato",
+            "area_acres": 2.0,
+            "expected_yield_kg": 15000.0,
+            "expected_selling_price_per_kg": 30.0
+        },
+        "what_if": {
+            "crop_name": "Tomato",
+            "area_acres": 3.0,
+            "expected_yield_kg": 18000.0,
+            "expected_selling_price_per_kg": 40.0
+        }
+    }
+    res = client.post("/api/v1/profit/what-if", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "current_plan" in data
+    assert "what_if_plan" in data
+    assert "profit_change_inr" in data
+    assert data["profit_change_inr"] > 0
+    assert "summary_verdict" in data
+
+def test_multi_scenarios():
+    payload = {
+        "crop_name": "Tomato",
+        "area_acres": 2.5,
+        "expected_yield_kg": 25000.0,
+        "expected_selling_price_per_kg": 25.0
+    }
+    res = client.post("/api/v1/profit/scenarios", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "conservative" in data
+    assert "expected" in data
+    assert "best_case" in data
+    assert data["conservative"]["estimated_profit_inr"] < data["best_case"]["estimated_profit_inr"]
+
+def test_multilingual_ai_chat():
+    # 1. English chat
+    en_res = client.post("/api/v1/ai/chat", json={"message": "How to treat tomato leaf blight?", "language": "en"})
+    assert en_res.status_code == 200
+    assert "Tomato" in en_res.json()["response"]
+
+    # 2. Hindi chat
+    hi_res = client.post("/api/v1/ai/chat", json={"message": "टमाटर के रोग की रोकथाम कैसे करें?", "language": "hi"})
+    assert hi_res.status_code == 200
+    assert "टमाटर" in hi_res.json()["response"] or "सल्ला" in hi_res.json()["response"]
+
+    # 3. Marathi chat
+    mr_res = client.post("/api/v1/ai/chat", json={"message": "टोमॅटो पिकावरील कीड कशी रोखावी?", "language": "mr"})
+    assert mr_res.status_code == 200
+    assert "टोमॅटो" in mr_res.json()["response"] or "सल्ला" in mr_res.json()["response"]
+
 def test_marketplace_and_orders():
     # List listings
     res = client.get("/api/v1/marketplace/listings")
@@ -77,6 +159,89 @@ def test_marketplace_and_orders():
     assert order_res.status_code == 200
     assert "order_number" in order_res.json()
 
+def test_user_moderation_system():
+    # 1. Admin login
+    admin_res = client.post("/api/v1/auth/login", json={"email": "admin@agrivision.com", "password": "Admin@123"})
+    assert admin_res.status_code == 200
+    admin_token = admin_res.json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # 2. Get moderation stats & user list
+    stats_res = client.get("/api/v1/moderation/stats", headers=admin_headers)
+    assert stats_res.status_code == 200
+    assert stats_res.json()["total_users"] >= 4
+
+    users_res = client.get("/api/v1/moderation/users", headers=admin_headers)
+    assert users_res.status_code == 200
+    users = users_res.json()
+    assert len(users) >= 4
+
+    # Find customer user
+    customer = next(u for u in users if u["email"] == "customer@agrivision.com")
+    customer_id = customer["id"]
+
+    # 3. Warn user
+    warn_res = client.post(
+        "/api/v1/moderation/warn",
+        json={"user_id": customer_id, "reason": "Minor marketplace listing infraction"},
+        headers=admin_headers
+    )
+    assert warn_res.status_code == 200
+    assert warn_res.json()["action"] == "WARNING"
+
+    # 4. Suspend user (7 days)
+    susp_res = client.post(
+        "/api/v1/moderation/suspend",
+        json={"user_id": customer_id, "duration_days": 7, "reason": "Repeated misconduct"},
+        headers=admin_headers
+    )
+    assert susp_res.status_code == 200
+    assert susp_res.json()["action"] == "SUSPENSION"
+
+    # 5. Verify suspended user login fails with 403
+    cust_login_res = client.post("/api/v1/auth/login", json={"email": "customer@agrivision.com", "password": "Customer@123"})
+    assert cust_login_res.status_code == 403
+    assert "suspended" in cust_login_res.json()["detail"].lower()
+
+    # 6. Unblock / Reinstate user
+    unblock_res = client.post(
+        "/api/v1/moderation/unblock",
+        json={"user_id": customer_id, "reason": "Reinstated after review"},
+        headers=admin_headers
+    )
+    assert unblock_res.status_code == 200
+
+    # 7. Verify login works again
+    cust_login_res2 = client.post("/api/v1/auth/login", json={"email": "customer@agrivision.com", "password": "Customer@123"})
+    assert cust_login_res2.status_code == 200
+
+    # 8. User reporting flow: Farmer reports Customer
+    farmer_res = client.post("/api/v1/auth/login", json={"email": "farmer@agrivision.com", "password": "Farmer@123"})
+    farmer_token = farmer_res.json()["access_token"]
+    farmer_headers = {"Authorization": f"Bearer {farmer_token}"}
+
+    report_res = client.post(
+        "/api/v1/moderation/reports",
+        json={"reported_user_id": customer_id, "reason": "Fraud/Scam", "description": "Order cancellation dispute"},
+        headers=farmer_headers
+    )
+    assert report_res.status_code == 200
+    report_id = report_res.json()["id"]
+
+    # 9. Admin reviews and resolves report
+    resolve_res = client.patch(
+        f"/api/v1/moderation/reports/{report_id}/status",
+        json={"status": "RESOLVED", "admin_notes": "Reviewed transaction details, resolved peacefully."},
+        headers=admin_headers
+    )
+    assert resolve_res.status_code == 200
+    assert resolve_res.json()["status"] == "RESOLVED"
+
+    # 10. Audit history
+    hist_res = client.get("/api/v1/moderation/history", headers=admin_headers)
+    assert hist_res.status_code == 200
+    assert len(hist_res.json()) >= 3
+
 def test_pdf_report_generation():
     res = client.get("/api/v1/reports/farm-pdf/1")
     assert res.status_code == 200
@@ -86,8 +251,13 @@ def test_pdf_report_generation():
 if __name__ == "__main__":
     test_health()
     test_login_and_roles()
+    test_user_preferred_language()
     test_crops_and_recommendations()
     test_profit_calculator()
+    test_what_if_simulator()
+    test_multi_scenarios()
+    test_multilingual_ai_chat()
     test_marketplace_and_orders()
+    test_user_moderation_system()
     test_pdf_report_generation()
-    print("All backend integration tests passed successfully!")
+    print("All backend unit and multilingual feature tests passed successfully!")

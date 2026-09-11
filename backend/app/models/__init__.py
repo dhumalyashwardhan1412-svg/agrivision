@@ -1,5 +1,9 @@
 from app.database.database import Base
-from app.models.user import User, UserRole, FarmerProfile, CustomerProfile, ShopkeeperProfile
+from app.models.user import (
+    User, UserRole, UserAccountStatus, ModerationAction,
+    ModerationActionType, UserReport, ReportStatus,
+    FarmerProfile, CustomerProfile, ShopkeeperProfile
+)
 from app.models.farm import Farm, LandParcel, FarmingActivity
 from app.models.soil import SoilTest, SoilSourceType
 from app.models.crop import Crop, CropRequirement, CropRecommendation
@@ -16,6 +20,11 @@ __all__ = [
     "Base",
     "User",
     "UserRole",
+    "UserAccountStatus",
+    "ModerationAction",
+    "ModerationActionType",
+    "UserReport",
+    "ReportStatus",
     "FarmerProfile",
     "CustomerProfile",
     "ShopkeeperProfile",

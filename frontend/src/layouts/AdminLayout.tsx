@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ShieldAlert, Users, TrendingUp, Activity, LogOut, Menu, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSelector } from '../components/common/LanguageSelector';
 
 export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Admin Dashboard', path: '/admin', icon: Activity },
-    { name: 'User Management', path: '/admin/users', icon: Users },
-    { name: 'Mandi Price Moderation', path: '/admin/markets', icon: TrendingUp },
+    { name: t('nav.adminDashboard', 'Admin Dashboard'), path: '/admin', icon: Activity },
+    { name: t('nav.userManagement', 'User Management & Moderation'), path: '/admin/users', icon: Users },
+    { name: t('nav.marketModeration', 'Mandi Price Moderation'), path: '/admin/markets', icon: TrendingUp },
   ];
 
   return (
@@ -31,8 +34,8 @@ export const AdminLayout: React.FC = () => {
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-base text-white tracking-tight">AgriVision</span>
-              <span className="block text-[10px] font-bold text-purple-400 uppercase -mt-0.5">Admin Central</span>
+              <span className="font-extrabold text-base text-white tracking-tight">{t('common.appName', 'AgriVision')}</span>
+              <span className="block text-[10px] font-bold text-purple-400 uppercase -mt-0.5">{t('common.adminPortal', 'Admin Central')}</span>
             </div>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400">
@@ -63,13 +66,17 @@ export const AdminLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400">Language:</span>
+            <LanguageSelector variant="dark" />
+          </div>
           <button
             onClick={logout}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-950/40 rounded-xl transition"
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <span>{t('common.signOut', 'Sign Out')}</span>
           </button>
         </div>
       </aside>
@@ -81,8 +88,12 @@ export const AdminLayout: React.FC = () => {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-base sm:text-lg font-extrabold text-slate-800">
-              Platform Administration & System Controls
+              {t('common.appName', 'AgriVision')} {t('common.adminPortal', 'Platform Administration')}
             </h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <LanguageSelector variant="light" />
           </div>
         </header>
 

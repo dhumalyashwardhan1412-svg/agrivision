@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { StartupAnimation } from './components/startup/StartupAnimation';
 
@@ -19,13 +20,15 @@ export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {/* Startup Intro Splash Animation */}
-        {showStartup && (
-          <StartupAnimation onComplete={handleStartupComplete} durationMs={3200} />
-        )}
+        <LanguageProvider>
+          {/* Startup Intro Splash Animation */}
+          {showStartup && (
+            <StartupAnimation onComplete={handleStartupComplete} durationMs={3200} />
+          )}
 
-        {/* Main AgriVision Platform Application */}
-        <AppRoutes />
+          {/* Main AgriVision Platform Application */}
+          <AppRoutes />
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   );

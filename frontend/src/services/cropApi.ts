@@ -1,5 +1,14 @@
 import api from './api';
-import { Crop, CropRecommendation, FarmingPlan, ProfitCalculationResponse } from '../types';
+import {
+  Crop,
+  CropRecommendation,
+  FarmingPlan,
+  ProfitCalculationResponse,
+  WhatIfRequest,
+  WhatIfComparisonResponse,
+  MultiScenarioRequest,
+  MultiScenarioResponse
+} from '../types';
 
 export const cropApi = {
   getCrops: async (category?: string, season?: string): Promise<Crop[]> => {
@@ -34,6 +43,16 @@ export const cropApi = {
 
   calculateProfit: async (data: Record<string, any>): Promise<ProfitCalculationResponse> => {
     const res = await api.post<ProfitCalculationResponse>('/profit/calculate', data);
+    return res.data;
+  },
+
+  calculateWhatIf: async (data: WhatIfRequest): Promise<WhatIfComparisonResponse> => {
+    const res = await api.post<WhatIfComparisonResponse>('/profit/what-if', data);
+    return res.data;
+  },
+
+  calculateScenarios: async (data: MultiScenarioRequest): Promise<MultiScenarioResponse> => {
+    const res = await api.post<MultiScenarioResponse>('/profit/scenarios', data);
     return res.data;
   }
 };

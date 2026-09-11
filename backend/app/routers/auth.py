@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 from app.database.session import get_db
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.dependencies import get_current_user
-from app.models.user import User, UserRole, FarmerProfile, CustomerProfile, ShopkeeperProfile
+from app.models.user import User, UserRole, UserAccountStatus, FarmerProfile, CustomerProfile, ShopkeeperProfile
 from app.schemas.auth import UserRegister, UserLogin, Token, UserResponse, UserProfileUpdate
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -24,6 +25,8 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         full_name=user_in.full_name,
         phone_number=user_in.phone_number,
         role=user_in.role,
+        status=UserAccountStatus.ACTIVE,
+        preferred_language=user_in.preferred_language or "en",
         state=user_in.state,
         district=user_in.district,
         address=user_in.address,
@@ -58,7 +61,9 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         role=new_user.role,
         user_id=new_user.id,
         full_name=new_user.full_name,
-        email=new_user.email
+        email=new_user.email,
+        preferred_language=new_user.preferred_language or "en",
+        status=new_user.status
     )
 
 @router.post("/login", response_model=Token)
@@ -71,7 +76,33 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="User account is deactivated")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+
+    # Account Moderation Status Check on Login
+    if user.status == UserAccountStatus.BLOCKED:
+        reason_text = f" Reason: {user.blocked_reason}" if user.blocked_reason else ""
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Your AgriVision account has been permanently blocked.{reason_text} Please contact support."
+        )
+
+    if user.status == UserAccountStatus.SUSPENDED:
+        now_utc = datetime.now(timezone.utc)
+        if user.suspension_until:
+            susp_until = user.suspension_until.replace(tzinfo=timezone.utc) if user.suspension_until.tzinfo is None else user.suspension_until
+            if now_utc < susp_until:
+                formatted_until = susp_until.strftime("%Y-%m-%d %H:%M UTC")
+                reason_text = f" Reason: {user.blocked_reason}" if user.blocked_reason else ""
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Your account is temporarily suspended until {formatted_until}.{reason_text} Please contact support."
+                )
+            else:
+                user.status = UserAccountStatus.ACTIVE
+                user.suspension_until = None
+                user.blocked_reason = None
+                db.commit()
+                db.refresh(user)
 
     token = create_access_token(subject=user.id, role=user.role.value)
     return Token(
@@ -79,7 +110,9 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
         role=user.role,
         user_id=user.id,
         full_name=user.full_name,
-        email=user.email
+        email=user.email,
+        preferred_language=user.preferred_language or "en",
+        status=user.status
     )
 
 @router.get("/me", response_model=UserResponse)
@@ -96,6 +129,8 @@ def update_profile(
         current_user.full_name = profile_in.full_name
     if profile_in.phone_number is not None:
         current_user.phone_number = profile_in.phone_number
+    if profile_in.preferred_language is not None:
+        current_user.preferred_language = profile_in.preferred_language
     if profile_in.address is not None:
         current_user.address = profile_in.address
     if profile_in.state is not None:

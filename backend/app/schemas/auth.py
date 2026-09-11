@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
-from app.models.user import UserRole
+from app.models.user import UserRole, UserAccountStatus
 
 class UserRegister(BaseModel):
     email: EmailStr
@@ -9,6 +9,7 @@ class UserRegister(BaseModel):
     full_name: str
     phone_number: Optional[str] = None
     role: UserRole = UserRole.FARMER
+    preferred_language: Optional[str] = "en" # en, hi, mr
     state: Optional[str] = "Punjab"
     district: Optional[str] = "Ludhiana"
     address: Optional[str] = None
@@ -31,6 +32,8 @@ class Token(BaseModel):
     user_id: int
     full_name: str
     email: str
+    preferred_language: str = "en"
+    status: UserAccountStatus = UserAccountStatus.ACTIVE
 
 class FarmerProfileResponse(BaseModel):
     id: int
@@ -66,6 +69,12 @@ class UserResponse(BaseModel):
     full_name: str
     phone_number: Optional[str]
     role: UserRole
+    preferred_language: str = "en"
+    status: UserAccountStatus = UserAccountStatus.ACTIVE
+    warning_count: int = 0
+    suspension_until: Optional[datetime] = None
+    blocked_at: Optional[datetime] = None
+    blocked_reason: Optional[str] = None
     is_active: bool
     avatar_url: Optional[str]
     address: Optional[str]
@@ -84,6 +93,7 @@ class UserResponse(BaseModel):
 class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    preferred_language: Optional[str] = None # en, hi, mr
     address: Optional[str] = None
     state: Optional[str] = None
     district: Optional[str] = None

@@ -10,6 +10,24 @@ class UserRole(str, enum.Enum):
     SHOPKEEPER = "SHOPKEEPER"
     ADMIN = "ADMIN"
 
+class UserAccountStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    WARNED = "WARNED"
+    SUSPENDED = "SUSPENDED"
+    BLOCKED = "BLOCKED"
+
+class ModerationActionType(str, enum.Enum):
+    WARNING = "WARNING"
+    SUSPENSION = "SUSPENSION"
+    BLOCK = "BLOCK"
+    UNBLOCK = "UNBLOCK"
+
+class ReportStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    RESOLVED = "RESOLVED"
+    REJECTED = "REJECTED"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -29,6 +47,16 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+    # Moderation & Account Status Fields
+    status = Column(Enum(UserAccountStatus), default=UserAccountStatus.ACTIVE, nullable=False)
+    warning_count = Column(Integer, default=0, nullable=False)
+    suspension_until = Column(DateTime, nullable=True)
+    blocked_at = Column(DateTime, nullable=True)
+    blocked_reason = Column(Text, nullable=True)
+
+    # Multilingual preference
+    preferred_language = Column(String(10), default="en", nullable=False)
+
     # Profile relationships
     farmer_profile = relationship("FarmerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     customer_profile = relationship("CustomerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -37,6 +65,45 @@ class User(Base):
     # Generic user entities
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     reviews_written = relationship("Review", back_populates="reviewer", cascade="all, delete-orphan")
+
+    # Moderation relationships
+    moderation_actions_received = relationship("ModerationAction", foreign_keys="ModerationAction.user_id", back_populates="user", cascade="all, delete-orphan")
+    moderation_actions_performed = relationship("ModerationAction", foreign_keys="ModerationAction.admin_id", back_populates="admin")
+    reports_filed = relationship("UserReport", foreign_keys="UserReport.reporter_id", back_populates="reporter")
+    reports_received = relationship("UserReport", foreign_keys="UserReport.reported_user_id", back_populates="reported_user")
+
+class ModerationAction(Base):
+    __tablename__ = "moderation_actions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    action = Column(Enum(ModerationActionType), nullable=False)
+    reason = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id], back_populates="moderation_actions_received")
+    admin = relationship("User", foreign_keys=[admin_id], back_populates="moderation_actions_performed")
+
+class UserReport(Base):
+    __tablename__ = "user_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reporter_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reported_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reason = Column(String(100), nullable=False) # Spam, Fraud/Scam, Fake Product, Misleading Information, Harassment, Suspicious Activity, Duplicate Account, Other
+    description = Column(Text, nullable=True)
+    status = Column(Enum(ReportStatus), default=ReportStatus.PENDING, nullable=False)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    admin_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    resolved_at = Column(DateTime, nullable=True)
+
+    reporter = relationship("User", foreign_keys=[reporter_id], back_populates="reports_filed")
+    reported_user = relationship("User", foreign_keys=[reported_user_id], back_populates="reports_received")
+    admin = relationship("User", foreign_keys=[admin_id])
 
 class FarmerProfile(Base):
     __tablename__ = "farmer_profiles"

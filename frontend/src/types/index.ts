@@ -1,11 +1,19 @@
 export type UserRole = 'FARMER' | 'CUSTOMER' | 'SHOPKEEPER' | 'ADMIN';
 
+export type UserAccountStatus = 'ACTIVE' | 'WARNED' | 'SUSPENDED' | 'BLOCKED';
+
 export interface User {
   id: number;
   email: string;
   full_name: string;
   phone_number?: string;
   role: UserRole;
+  preferred_language?: string;
+  status?: UserAccountStatus;
+  warning_count?: number;
+  suspension_until?: string;
+  blocked_at?: string;
+  blocked_reason?: string;
   is_active: boolean;
   avatar_url?: string;
   address?: string;
@@ -225,6 +233,7 @@ export interface FarmingPlan {
 export interface CostBreakdown {
   seed_cost_inr: number;
   fertilizer_cost_inr: number;
+  organic_manure_cost_inr?: number;
   labour_cost_inr: number;
   irrigation_cost_inr: number;
   equipment_cost_inr: number;
@@ -252,6 +261,84 @@ export interface ProfitCalculationResponse {
   break_even_yield_kg: number;
   profitability_rating: string;
   insights: string[];
+}
+
+export interface WhatIfCalculationParams {
+  crop_id?: number;
+  crop_name?: string;
+  area_acres: number;
+  seed_cost_inr?: number;
+  fertilizer_cost_inr?: number;
+  organic_manure_cost_inr?: number;
+  labour_cost_inr?: number;
+  irrigation_cost_inr?: number;
+  equipment_cost_inr?: number;
+  electricity_fuel_cost_inr?: number;
+  crop_protection_cost_inr?: number;
+  transportation_cost_inr?: number;
+  packaging_cost_inr?: number;
+  other_costs_inr?: number;
+  expected_yield_kg?: number;
+  expected_selling_price_per_kg?: number;
+}
+
+export interface WhatIfRequest {
+  current: WhatIfCalculationParams;
+  what_if: WhatIfCalculationParams;
+}
+
+export interface WhatIfComparisonResponse {
+  current_plan: ProfitCalculationResponse;
+  what_if_plan: ProfitCalculationResponse;
+  profit_change_inr: number;
+  revenue_change_inr: number;
+  cost_change_inr: number;
+  roi_change_percent: number;
+  profit_change_percent: number;
+  summary_verdict: string;
+  is_estimate: boolean;
+  disclaimer: string;
+}
+
+export interface ScenarioItem {
+  name: string;
+  tagline: string;
+  assumed_yield_kg: number;
+  assumed_price_per_kg: number;
+  total_cost_inr: number;
+  expected_revenue_inr: number;
+  estimated_profit_inr: number;
+  profit_margin_percent: number;
+  roi_percent: number;
+  risk_level: string;
+}
+
+export interface MultiScenarioRequest {
+  crop_name: string;
+  area_acres: number;
+  seed_cost_inr?: number;
+  fertilizer_cost_inr?: number;
+  organic_manure_cost_inr?: number;
+  labour_cost_inr?: number;
+  irrigation_cost_inr?: number;
+  equipment_cost_inr?: number;
+  electricity_fuel_cost_inr?: number;
+  crop_protection_cost_inr?: number;
+  transportation_cost_inr?: number;
+  packaging_cost_inr?: number;
+  other_costs_inr?: number;
+  expected_yield_kg?: number;
+  expected_selling_price_per_kg?: number;
+}
+
+export interface MultiScenarioResponse {
+  crop_name: string;
+  area_acres: number;
+  conservative: ScenarioItem;
+  expected: ScenarioItem;
+  best_case: ScenarioItem;
+  is_estimate: boolean;
+  disclaimer: string;
 }
 
 export type MarketDataType = 'LIVE' | 'RECENT' | 'HISTORICAL' | 'ESTIMATED' | 'DEMO';
@@ -496,4 +583,70 @@ export interface AIChatMessage {
   timestamp: string;
   suggested_actions?: string[];
   source?: string;
+}
+
+// Moderation & Safety Types
+export type ModerationActionType = 'WARNING' | 'SUSPENSION' | 'BLOCK' | 'UNBLOCK';
+export type ReportStatus = 'PENDING' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED';
+
+export interface UserModerationSummary {
+  id: number;
+  email: string;
+  full_name: string;
+  phone_number?: string;
+  role: UserRole;
+  status: UserAccountStatus;
+  warning_count: number;
+  suspension_until?: string;
+  blocked_at?: string;
+  blocked_reason?: string;
+  is_active: boolean;
+  state?: string;
+  district?: string;
+  created_at: string;
+  listings_count: number;
+  orders_count: number;
+  reports_received_count: number;
+}
+
+export interface ModerationActionResponse {
+  id: number;
+  user_id: number;
+  admin_id: number;
+  action: ModerationActionType;
+  reason: string;
+  description?: string;
+  created_at: string;
+  expires_at?: string;
+  user_name?: string;
+  user_email?: string;
+  admin_name?: string;
+}
+
+export interface UserReportResponse {
+  id: number;
+  reporter_id: number;
+  reported_user_id: number;
+  reason: string;
+  description?: string;
+  status: ReportStatus;
+  admin_id?: number;
+  admin_notes?: string;
+  created_at: string;
+  resolved_at?: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  reported_user_name?: string;
+  reported_user_email?: string;
+  reported_user_role?: string;
+}
+
+export interface ModerationStatsResponse {
+  total_users: number;
+  active_users: number;
+  warned_users: number;
+  suspended_users: number;
+  blocked_users: number;
+  pending_reports: number;
+  resolved_reports: number;
 }

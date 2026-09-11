@@ -8,11 +8,17 @@ export interface ChatResponse {
 }
 
 export const aiApi = {
-  chat: async (message: string, farmId?: number, contextData?: Record<string, any>): Promise<ChatResponse> => {
+  chat: async (
+    message: string,
+    farmId?: number,
+    contextData?: Record<string, any>,
+    language: string = 'en'
+  ): Promise<ChatResponse> => {
     const res = await api.post<ChatResponse>('/ai/chat', {
       message,
       farm_id: farmId,
-      context_data: contextData
+      context_data: contextData,
+      language: language
     });
     return res.data;
   },

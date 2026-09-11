@@ -20,26 +20,29 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSelector } from '../components/common/LanguageSelector';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
 
 export const FarmerLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Dashboard Overview', path: '/farmer', icon: LayoutDashboard },
-    { name: 'My Farms & Land', path: '/farmer/farms', icon: Sprout },
-    { name: 'Soil Testing Lab & AI', path: '/farmer/soil', icon: FlaskConical },
-    { name: 'Crop Recommendations', path: '/farmer/recommendations', icon: Sparkles },
-    { name: 'Farming Plans (Organic/Modern)', path: '/farmer/plans', icon: BookOpen },
-    { name: 'Profit & ROI Calculator', path: '/farmer/profit', icon: Calculator },
-    { name: 'APMC Mandi Prices', path: '/farmer/market', icon: TrendingUp },
-    { name: 'Machinery Hub & Shops Map', path: '/farmer/equipment', icon: MapPin },
-    { name: 'Crop Doctor (Disease Scan)', path: '/farmer/doctor', icon: Stethoscope },
-    { name: 'My Produce Sales & Orders', path: '/farmer/sales', icon: ShoppingBag },
-    { name: 'Smart Farm PDF Report', path: '/farmer/report', icon: FileText },
+    { name: t('nav.dashboard', 'Dashboard Overview'), path: '/farmer', icon: LayoutDashboard },
+    { name: t('nav.myFarms', 'My Farms & Land'), path: '/farmer/farms', icon: Sprout },
+    { name: t('nav.soilLab', 'Soil Testing Lab & AI'), path: '/farmer/soil', icon: FlaskConical },
+    { name: t('nav.cropRecs', 'Crop Recommendations'), path: '/farmer/recommendations', icon: Sparkles },
+    { name: t('nav.farmingPlans', 'Farming Plans (Organic/Modern)'), path: '/farmer/plans', icon: BookOpen },
+    { name: t('nav.profitCalc', 'Profit & ROI Calculator'), path: '/farmer/profit', icon: Calculator },
+    { name: t('nav.mandiPrices', 'APMC Mandi Prices'), path: '/farmer/market', icon: TrendingUp },
+    { name: t('nav.machineryHub', 'Machinery Hub & Shops Map'), path: '/farmer/equipment', icon: MapPin },
+    { name: t('nav.cropDoctor', 'Crop Doctor (Disease Scan)'), path: '/farmer/doctor', icon: Stethoscope },
+    { name: t('nav.produceSales', 'My Produce Sales & Orders'), path: '/farmer/sales', icon: ShoppingBag },
+    { name: t('nav.smartReport', 'Smart Farm PDF Report'), path: '/farmer/report', icon: FileText },
   ];
 
   return (
@@ -65,8 +68,8 @@ export const FarmerLayout: React.FC = () => {
               <Sprout className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-base text-slate-900 tracking-tight">AgriVision</span>
-              <span className="block text-[10px] font-bold text-agri-700 uppercase -mt-0.5">Farmer Portal</span>
+              <span className="font-extrabold text-base text-slate-900 tracking-tight">{t('common.appName', 'AgriVision')}</span>
+              <span className="block text-[10px] font-bold text-agri-700 uppercase -mt-0.5">{t('common.farmerPortal', 'Farmer Portal')}</span>
             </div>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400">
@@ -83,7 +86,7 @@ export const FarmerLayout: React.FC = () => {
             <div className="overflow-hidden">
               <h4 className="font-bold text-sm truncate">{user?.full_name || 'Farmer Account'}</h4>
               <p className="text-[11px] text-emerald-400 font-medium truncate flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Verified Farmer
+                <ShieldCheck className="w-3 h-3" /> {t('common.verified', 'Verified Farmer')}
               </p>
             </div>
           </div>
@@ -114,13 +117,17 @@ export const FarmerLayout: React.FC = () => {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500">Language:</span>
+            <LanguageSelector variant="light" />
+          </div>
           <button
             onClick={logout}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition"
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <span>{t('common.signOut', 'Sign Out')}</span>
           </button>
         </div>
       </aside>
@@ -137,16 +144,18 @@ export const FarmerLayout: React.FC = () => {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">
-              AgriVision Farmer Workspace
+              {t('common.appName', 'AgriVision')} {t('common.farmerPortal', 'Farmer Workspace')}
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageSelector variant="light" />
+
             <Link
               to="/marketplace"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 hover:bg-emerald-100 transition"
             >
-              <ShoppingBag className="w-3.5 h-3.5" /> Buyer Marketplace
+              <ShoppingBag className="w-3.5 h-3.5" /> {t('nav.marketplace', 'Buyer Marketplace')}
             </Link>
           </div>
         </header>

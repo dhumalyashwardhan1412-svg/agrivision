@@ -2,18 +2,21 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Store, PackageCheck, Wrench, ShoppingBag, LogOut, Menu, X, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSelector } from '../components/common/LanguageSelector';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
 
 export const ShopkeeperLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Dealer Dashboard', path: '/shopkeeper', icon: Store },
-    { name: 'Products & Inventory', path: '/shopkeeper/products', icon: PackageCheck },
-    { name: 'Equipment & Machinery', path: '/shopkeeper/equipment', icon: Wrench },
-    { name: 'Customer Orders', path: '/shopkeeper/orders', icon: ShoppingBag },
+    { name: t('common.dealerPortal', 'Dealer Dashboard'), path: '/shopkeeper', icon: Store },
+    { name: t('nav.shopInventory', 'Products & Inventory'), path: '/shopkeeper/products', icon: PackageCheck },
+    { name: t('nav.machineryHub', 'Equipment & Machinery'), path: '/shopkeeper/equipment', icon: Wrench },
+    { name: t('nav.customerOrders', 'Customer Orders'), path: '/shopkeeper/orders', icon: ShoppingBag },
   ];
 
   return (
@@ -33,8 +36,8 @@ export const ShopkeeperLayout: React.FC = () => {
               <Store className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-base text-slate-900 tracking-tight">AgriVision</span>
-              <span className="block text-[10px] font-bold text-sky-700 uppercase -mt-0.5">Dealer & Rental Hub</span>
+              <span className="font-extrabold text-base text-slate-900 tracking-tight">{t('common.appName', 'AgriVision')}</span>
+              <span className="block text-[10px] font-bold text-sky-700 uppercase -mt-0.5">{t('common.dealerPortal', 'Dealer & Rental Hub')}</span>
             </div>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400">
@@ -50,7 +53,7 @@ export const ShopkeeperLayout: React.FC = () => {
             <div className="overflow-hidden">
               <h4 className="font-bold text-sm truncate">{user?.full_name || 'Agri Store Manager'}</h4>
               <p className="text-[11px] text-sky-300 font-medium truncate flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Certified Input Dealer
+                <ShieldCheck className="w-3 h-3" /> {t('common.verified', 'Certified Input Dealer')}
               </p>
             </div>
           </div>
@@ -79,13 +82,17 @@ export const ShopkeeperLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500">Language:</span>
+            <LanguageSelector variant="light" />
+          </div>
           <button
             onClick={logout}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition"
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <span>{t('common.signOut', 'Sign Out')}</span>
           </button>
         </div>
       </aside>
@@ -97,8 +104,12 @@ export const ShopkeeperLayout: React.FC = () => {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-base sm:text-lg font-extrabold text-slate-800">
-              Agri Inputs & Machinery Management
+              {t('common.dealerPortal', 'Agri Inputs & Machinery Management')}
             </h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <LanguageSelector variant="light" />
           </div>
         </header>
 

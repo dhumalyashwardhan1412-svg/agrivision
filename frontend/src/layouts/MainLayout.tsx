@@ -4,6 +4,7 @@ import { Sprout, LogIn, UserPlus, LogOut, LayoutDashboard, ShoppingBag, Bot, Com
 import { useAuth } from '../context/AuthContext';
 import { LiveMandiTicker } from '../components/dashboard/LiveMandiTicker';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
+import { LanguageSelector } from '../components/common/LanguageSelector';
 import { marketApi } from '../services/marketApi';
 import { MarketPrice } from '../types';
 
@@ -76,8 +77,10 @@ export const MainLayout: React.FC = () => {
             </Link>
           </nav>
 
-          {/* User Auth Buttons / Role Switcher */}
+          {/* User Auth Buttons / Role Switcher & Language Selector */}
           <div className="hidden sm:flex items-center gap-3">
+            <LanguageSelector variant="light" />
+
             {user ? (
               <div className="flex items-center gap-3">
                 <Link

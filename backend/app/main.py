@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.database.database import engine, Base
+from app.database.migrations import run_safe_schema_migrations
 import app.models # Ensure all models are registered
 from app.utils.seed_data import seed_database
 
@@ -13,13 +14,19 @@ from app.utils.seed_data import seed_database
 from app.routers import (
     auth, users, farms, soil, crops, recommendations,
     farming_plans, profit, markets, equipment, shops,
-    marketplace, orders, notifications, ai, reports
+    marketplace, orders, notifications, ai, reports,
+    moderation
 )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Ensure tables exist & seed demo data
+    # Startup: Ensure tables exist & run safe migrations
     Base.metadata.create_all(bind=engine)
+    try:
+        run_safe_schema_migrations()
+    except Exception as e:
+        print(f"Migration note: {e}")
+
     try:
         seed_database()
     except Exception as e:
@@ -65,6 +72,7 @@ app.include_router(orders.router, prefix=api_prefix)
 app.include_router(notifications.router, prefix=api_prefix)
 app.include_router(ai.router, prefix=api_prefix)
 app.include_router(reports.router, prefix=api_prefix)
+app.include_router(moderation.router, prefix=api_prefix)
 
 @app.get("/health")
 def health_check():

@@ -27,7 +27,12 @@ async def chat_with_agri_guide(
         context["user_state"] = current_user.state
         context["user_district"] = current_user.district
 
-    res = await ai_service.chat(req.message, req.farm_id, context)
+    res = await ai_service.chat(
+        query=req.message,
+        farm_id=req.farm_id,
+        context_data=context,
+        language=req.language or "en"
+    )
 
     # Save to history if authenticated
     if current_user:
