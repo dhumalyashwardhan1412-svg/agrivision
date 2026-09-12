@@ -1,10 +1,8 @@
 import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
@@ -69,7 +67,7 @@ async def lifespan(app: FastAPI):
         print(f"Database table creation error: {e}")
 
     # -----------------------------------------------------
-    # Run safe migrations
+    # Run safe database migrations
     # -----------------------------------------------------
 
     try:
@@ -79,7 +77,7 @@ async def lifespan(app: FastAPI):
         print(f"Migration note: {e}")
 
     # -----------------------------------------------------
-    # Seed required/default data
+    # Seed default / required database data
     # -----------------------------------------------------
 
     try:
@@ -104,7 +102,7 @@ app = FastAPI(
     description=(
         "AgriVision Version 3 - Smart Agriculture Ecosystem API. "
         "Provides farmer, buyer, dealer, marketplace, market intelligence, "
-        "notification, review, administration, and AI-powered services."
+        "notifications, reviews, administration and AI-powered services."
     ),
     version="3.0.0",
     lifespan=lifespan,
@@ -115,11 +113,7 @@ app = FastAPI(
 # CORS CONFIGURATION
 # =========================================================
 
-# These origins are required while developing React/Vite locally.
-#
-# In production, React and FastAPI are served from the same domain,
-# so CORS is normally not required between them.
-
+# Local frontend development URLs
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -129,12 +123,17 @@ allowed_origins = [
     "http://127.0.0.1:3000",
 ]
 
-# Optional extra frontend origin.
-#
-# Example:
-# FRONTEND_ORIGIN=https://agrivision.onrender.com
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN")
+# ---------------------------------------------------------
+# Production frontend URL
+# ---------------------------------------------------------
+#
+# Render environment variable example:
+#
+# FRONTEND_ORIGIN=https://agrivision-1.onrender.com
+#
+
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
 
 if frontend_origin:
     frontend_origin = frontend_origin.rstrip("/")
@@ -143,38 +142,81 @@ if frontend_origin:
         allowed_origins.append(frontend_origin)
 
 
+# ---------------------------------------------------------
+# Optional multiple frontend origins
+# ---------------------------------------------------------
+#
+# Example:
+#
+# FRONTEND_ORIGINS=https://site1.com,https://site2.com
+#
+
+extra_origins = os.getenv("FRONTEND_ORIGINS", "").strip()
+
+if extra_origins:
+    for origin in extra_origins.split(","):
+
+        origin = origin.strip().rstrip("/")
+
+        if (
+            origin
+            and origin.startswith(("http://", "https://"))
+            and origin not in allowed_origins
+        ):
+            allowed_origins.append(origin)
+
+
+print("Allowed CORS origins:")
+
+for origin in allowed_origins:
+    print(f" - {origin}")
+
+
 app.add_middleware(
     CORSMiddleware,
+
+    # Exact frontend domains that may access this API
     allow_origins=allowed_origins,
+
+    # Required if authentication/cookies/authorization are used
     allow_credentials=True,
+
+    # Allow GET, POST, PUT, PATCH, DELETE, OPTIONS, etc.
     allow_methods=["*"],
+
+    # Allow Authorization and other request headers
     allow_headers=["*"],
 )
 
 
 # =========================================================
-# STATIC / UPLOAD FILES
+# STATIC / UPLOADED FILES
 # =========================================================
 
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+os.makedirs(
+    settings.UPLOAD_DIR,
+    exist_ok=True,
+)
 
 app.mount(
     "/uploads",
-    StaticFiles(directory=settings.UPLOAD_DIR),
+    StaticFiles(
+        directory=settings.UPLOAD_DIR
+    ),
     name="uploads",
 )
 
 
 # =========================================================
-# API V1 ROUTERS
+# API PREFIX
 # =========================================================
 
 api_prefix = settings.API_V1_STR
 
 
-# ---------------------------------------------------------
-# Authentication & Users
-# ---------------------------------------------------------
+# =========================================================
+# AUTHENTICATION & USERS
+# =========================================================
 
 app.include_router(
     auth.router,
@@ -187,9 +229,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Farmer & Agriculture
-# ---------------------------------------------------------
+# =========================================================
+# FARMER & AGRICULTURE
+# =========================================================
 
 app.include_router(
     farms.router,
@@ -222,9 +264,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Market Intelligence
-# ---------------------------------------------------------
+# =========================================================
+# MARKET INTELLIGENCE
+# =========================================================
 
 app.include_router(
     markets.router,
@@ -232,9 +274,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Equipment & Shops
-# ---------------------------------------------------------
+# =========================================================
+# EQUIPMENT & SHOPS
+# =========================================================
 
 app.include_router(
     equipment.router,
@@ -247,9 +289,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Marketplace & Orders
-# ---------------------------------------------------------
+# =========================================================
+# MARKETPLACE & ORDERS
+# =========================================================
 
 app.include_router(
     marketplace.router,
@@ -262,9 +304,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Notifications
-# ---------------------------------------------------------
+# =========================================================
+# NOTIFICATIONS
+# =========================================================
 
 app.include_router(
     notifications.router,
@@ -272,9 +314,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# AI & Reports
-# ---------------------------------------------------------
+# =========================================================
+# AI & REPORTS
+# =========================================================
 
 app.include_router(
     ai.router,
@@ -287,9 +329,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Moderation
-# ---------------------------------------------------------
+# =========================================================
+# MODERATION
+# =========================================================
 
 app.include_router(
     moderation.router,
@@ -297,9 +339,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Government Schemes
-# ---------------------------------------------------------
+# =========================================================
+# GOVERNMENT SCHEMES
+# =========================================================
 
 app.include_router(
     schemes.router,
@@ -307,9 +349,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Buyer Requirements
-# ---------------------------------------------------------
+# =========================================================
+# BUYER REQUIREMENTS
+# =========================================================
 
 app.include_router(
     requirements.router,
@@ -322,9 +364,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Offers / Negotiations
-# ---------------------------------------------------------
+# =========================================================
+# OFFERS / NEGOTIATIONS
+# =========================================================
 
 app.include_router(
     offers.router,
@@ -332,9 +374,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Ratings & Reviews
-# ---------------------------------------------------------
+# =========================================================
+# RATINGS & REVIEWS
+# =========================================================
 
 app.include_router(
     reviews.router,
@@ -343,12 +385,8 @@ app.include_router(
 
 
 # =========================================================
-# VERSION 3 ROUTERS
+# DEALER VERSION 3
 # =========================================================
-
-# ---------------------------------------------------------
-# Dealer V3
-# ---------------------------------------------------------
 
 app.include_router(
     dealer_v3.router,
@@ -356,9 +394,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Admin V3
-# ---------------------------------------------------------
+# =========================================================
+# ADMIN VERSION 3
+# =========================================================
 
 app.include_router(
     admin_v3.router,
@@ -366,9 +404,9 @@ app.include_router(
 )
 
 
-# ---------------------------------------------------------
-# Offline / PWA Synchronization
-# ---------------------------------------------------------
+# =========================================================
+# OFFLINE / PWA SYNCHRONIZATION
+# =========================================================
 
 app.include_router(
     offline.router,
@@ -382,11 +420,36 @@ app.include_router(
 
 
 # ---------------------------------------------------------
+# Backend root
+# ---------------------------------------------------------
+
+@app.api_route(
+    "/",
+    methods=["GET", "HEAD"],
+    include_in_schema=False,
+)
+async def root():
+
+    return {
+        "message": "AgriVision Version 3 Backend",
+        "status": "running",
+        "version": "3.0.0",
+        "api": api_prefix,
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
+# ---------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------
 
-@app.get("/health", tags=["System"])
-def health_check():
+@app.api_route(
+    "/health",
+    methods=["GET", "HEAD"],
+    tags=["System"],
+)
+async def health_check():
 
     return {
         "status": "healthy",
@@ -400,8 +463,11 @@ def health_check():
 # API Information
 # ---------------------------------------------------------
 
-@app.get("/api-info", tags=["System"])
-def api_info():
+@app.get(
+    "/api-info",
+    tags=["System"],
+)
+async def api_info():
 
     return {
         "message": "AgriVision Version 3 API",
@@ -415,161 +481,12 @@ def api_info():
 
 
 # =========================================================
-# REACT / VITE FRONTEND
-# =========================================================
-
-#
-# Docker production:
-#
-# /app/frontend_dist
-#
-# Local development build:
-#
-# project/frontend/dist
-#
-
-default_frontend_dist = (
-    Path(__file__).resolve().parents[2]
-    / "frontend"
-    / "dist"
-)
-
-FRONTEND_DIST = Path(
-    os.getenv(
-        "FRONTEND_DIST",
-        str(default_frontend_dist),
-    )
-).resolve()
-
-
-def serve_react_file(full_path: str):
-    """
-    Serve a real frontend file when it exists.
-
-    Otherwise return index.html so React Router can handle routes such as:
-
-    /farmer/dashboard
-    /farmer/offers
-    /buyer/dashboard
-    /buyer/requirements
-    /dealer/dashboard
-    /admin/dashboard
-    """
-
-    index_file = FRONTEND_DIST / "index.html"
-
-    # -----------------------------------------------------
-    # Serve actual files
-    # -----------------------------------------------------
-
-    if full_path:
-
-        requested_file = (
-            FRONTEND_DIST
-            / full_path
-        ).resolve()
-
-        # Security:
-        # prevent paths such as ../../secret.txt
-
-        try:
-            requested_file.relative_to(FRONTEND_DIST)
-            path_is_safe = True
-        except ValueError:
-            path_is_safe = False
-
-        if (
-            path_is_safe
-            and requested_file.exists()
-            and requested_file.is_file()
-        ):
-            return FileResponse(requested_file)
-
-    # -----------------------------------------------------
-    # SPA fallback
-    # -----------------------------------------------------
-
-    if index_file.exists():
-
-        return FileResponse(index_file)
-
-    raise HTTPException(
-        status_code=503,
-        detail=(
-            "AgriVision frontend build was not found. "
-            "Build the frontend using 'npm run build' "
-            "or configure FRONTEND_DIST."
-        ),
-    )
-
-
-# =========================================================
-# FRONTEND ROOT
-# =========================================================
-
-@app.get(
-    "/",
-    include_in_schema=False,
-)
-async def frontend_root():
-
-    return serve_react_file("")
-
-
-# =========================================================
-# FRONTEND SPA ROUTES
-# =========================================================
-
-@app.get(
-    "/{full_path:path}",
-    include_in_schema=False,
-)
-async def frontend_routes(full_path: str):
-
-    normalized_path = full_path.lstrip("/")
-
-    normalized_api_prefix = api_prefix.strip("/")
-
-    # -----------------------------------------------------
-    # Never return React HTML for unknown API routes
-    # -----------------------------------------------------
-
-    if (
-        normalized_path == normalized_api_prefix
-        or normalized_path.startswith(
-            normalized_api_prefix + "/"
-        )
-    ):
-        raise HTTPException(
-            status_code=404,
-            detail="API endpoint not found",
-        )
-
-    # Upload routes are handled by StaticFiles
-    if (
-        normalized_path == "uploads"
-        or normalized_path.startswith("uploads/")
-    ):
-        raise HTTPException(
-            status_code=404,
-            detail="Uploaded file not found",
-        )
-
-    return serve_react_file(normalized_path)
-
-
-# =========================================================
 # DEVELOPMENT SERVER
 # =========================================================
 
 if __name__ == "__main__":
 
     import uvicorn
-
-    # Local:
-    # python -m app.main
-    #
-    # Production normally starts using Docker CMD.
 
     port = int(
         os.getenv(
