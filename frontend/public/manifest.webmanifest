@@ -1,0 +1,17 @@
+{
+  "name": "AgriVision – Smart Farming Ecosystem",
+  "short_name": "AgriVision",
+  "description": "Smart Agriculture & Direct Market Platform for Farmers, Buyers, and Dealers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

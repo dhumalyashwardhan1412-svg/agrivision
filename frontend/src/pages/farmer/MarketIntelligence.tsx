@@ -8,8 +8,10 @@ import { MarketTrendChart } from '../../components/charts/MarketTrendChart';
 import { marketApi } from '../../services/marketApi';
 import { MarketPrice, MarketTrend, MarketComparisonResponse } from '../../types';
 import { formatINR } from '../../utils/formatters';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const MarketIntelligence: React.FC = () => {
+  const { t } = useLanguage();
   const [prices, setPrices] = useState<MarketPrice[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCommodity, setSelectedCommodity] = useState('Tomato');
@@ -50,12 +52,12 @@ export const MarketIntelligence: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 via-agri-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <Badge variant="blue" size="sm">AGMARKNET APMC MANDI INTELLIGENCE</Badge>
+          <Badge variant="blue" size="sm">{t('farmer.mandiIntelligence', 'AGMARKNET APMC MANDI INTELLIGENCE')}</Badge>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2">
-            Real-Time Agricultural Market Prices & Trends
+            {t('farmer.regionalMarketPrices', 'Real-Time Agricultural Market Prices & Trends')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Track daily wholesale arrivals, price spread across mandis, and 15-day price momentum forecasts.
+            {t('farmer.liveWholesaleUpdates', 'Track daily wholesale arrivals, price spread across mandis, and 15-day price momentum forecasts.')}
           </p>
         </div>
 
@@ -179,15 +181,15 @@ export const MarketIntelligence: React.FC = () => {
           <table className="w-full text-xs text-left">
             <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100 uppercase text-[10px]">
               <tr>
-                <th className="py-3 px-4">Commodity</th>
-                <th className="py-3 px-4">Market / Mandi</th>
-                <th className="py-3 px-4">State</th>
-                <th className="py-3 px-4">Min Price</th>
-                <th className="py-3 px-4">Max Price</th>
-                <th className="py-3 px-4">Modal Price (₹/Qtl)</th>
-                <th className="py-3 px-4">Price / kg</th>
-                <th className="py-3 px-4">7D Trend</th>
-                <th className="py-3 px-4">Data Type</th>
+                <th className="py-3 px-4">{t('farmer.commodity', 'Commodity')}</th>
+                <th className="py-3 px-4">{t('farmer.mandiMarket', 'Market / Mandi')}</th>
+                <th className="py-3 px-4">{t('auth.state', 'State')}</th>
+                <th className="py-3 px-4">Min {t('common.price', 'Price')}</th>
+                <th className="py-3 px-4">Max {t('common.price', 'Price')}</th>
+                <th className="py-3 px-4">{t('farmer.modalPrice', 'Modal Price (₹/Qtl)')}</th>
+                <th className="py-3 px-4">{t('farmer.priceKg', 'Price / kg')}</th>
+                <th className="py-3 px-4">{t('farmer.change7d', '7D Trend')}</th>
+                <th className="py-3 px-4">{t('farmer.dataType', 'Data Type')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">

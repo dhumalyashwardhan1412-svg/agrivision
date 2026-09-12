@@ -8,8 +8,10 @@ import { farmApi } from '../../services/farmApi';
 import { cropApi } from '../../services/cropApi';
 import { Farm, CropRecommendation } from '../../types';
 import { formatINR } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
 
 export const FarmReportDownload: React.FC = () => {
+  const { user } = useAuth();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>([]);
@@ -98,19 +100,27 @@ export const FarmReportDownload: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Farm Profile</span>
-            <strong className="text-slate-900 text-sm block mt-0.5">{selectedFarm?.name || 'Green Valley Eco Farm'}</strong>
+            <strong className="text-slate-900 text-sm block mt-0.5">
+              {selectedFarm?.name || (user?.full_name ? `${user.full_name.split(' ')[0]}'s Farm` : 'Registered Farm')}
+            </strong>
           </div>
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Location</span>
-            <strong className="text-slate-900 text-sm block mt-0.5">{selectedFarm?.district || 'Ludhiana'}, {selectedFarm?.state || 'Punjab'}</strong>
+            <strong className="text-slate-900 text-sm block mt-0.5">
+              {selectedFarm?.district || user?.district || 'Farm Location'}, {selectedFarm?.state || user?.state || ''}
+            </strong>
           </div>
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Area</span>
-            <strong className="text-slate-900 text-sm block mt-0.5">{selectedFarm?.total_area_acres || 3.5} Acres</strong>
+            <strong className="text-slate-900 text-sm block mt-0.5">
+              {selectedFarm?.total_area_acres ?? (user?.farmer_profile?.total_land_area ?? user?.total_farm_land ?? 1.0)} Acres
+            </strong>
           </div>
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Irrigation Mode</span>
-            <strong className="text-slate-900 text-sm block mt-0.5">{selectedFarm?.irrigation_system || 'Drip'} ({selectedFarm?.water_source || 'Borewell'})</strong>
+            <strong className="text-slate-900 text-sm block mt-0.5">
+              {selectedFarm?.irrigation_system || user?.farmer_profile?.irrigation_source || user?.irrigation_source || 'Borewell'} ({selectedFarm?.water_source || 'Borewell'})
+            </strong>
           </div>
         </div>
 

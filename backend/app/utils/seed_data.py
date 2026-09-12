@@ -12,15 +12,29 @@ from app.models.shop import Shop, ShopProduct
 from app.models.listing import CropListing, Review, ListingStatus
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.notification import Notification
+from app.models.scheme import GovernmentScheme, GovernmentType, SchemeCategory, SavedScheme
+from app.models.requirement import BuyerRequirement, RequirementStatus
+from app.models.offer import Offer, OfferStatus, OfferNegotiation, NegotiationActionType
+from app.models.review import TransactionReview, ReviewType
+from app.models.dealer_discount import DealerDiscount, DiscountType
+from app.models.audit_log import AuditLog
+from app.models.offline_sync import OfflineSyncRecord, SyncStatus
+
+from app.database.migrations import run_safe_schema_migrations
 
 def seed_database():
     Base.metadata.create_all(bind=engine)
+    try:
+        run_safe_schema_migrations()
+    except Exception as e:
+        print(f"Migration note: {e}")
     db = SessionLocal()
 
     try:
         # Check if already seeded
         if db.query(User).filter(User.email == "farmer@agrivision.com").first():
-            print("Database already contains seed data.")
+            print("Database already contains seed data. Checking Version 3 extensions...")
+            seed_v3_data(db)
             return
 
         print("Seeding AgriVision database with comprehensive agricultural data...")
@@ -578,6 +592,7 @@ def seed_database():
         db.add(notif1)
         db.add(notif2)
 
+        seed_v3_data(db)
         db.commit()
         print("Database seeded successfully with all roles, agricultural data, shops, equipment, and marketplace records.")
 
@@ -586,6 +601,467 @@ def seed_database():
         print(f"Error seeding database: {e}")
     finally:
         db.close()
+
+def seed_v3_data(db: Session):
+    """Seeds Version 3 features: Real Government Schemes, Buyer Requirements, Offers, Dealer Discounts, Reviews, Audit Logs."""
+    try:
+        # 1. Real Government Schemes
+        if not db.query(GovernmentScheme).first():
+            print("Seeding verified Government Schemes...")
+            schemes = [
+                GovernmentScheme(
+                    name="PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+                    scheme_code="PM-KISAN-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.SUBSIDY,
+                    short_description="Direct income support of ₹6,000 per year in three equal 4-monthly installments of ₹2,000 to farmer families.",
+                    full_description="PM-KISAN provides income support to all landholding farmer families in the country having cultivable land, subject to certain exclusion criteria related to higher income status.",
+                    benefits="₹6,000 annually credited directly into verified Aadhaar-linked bank accounts (DBT) in three tranches of ₹2,000.",
+                    eligibility_criteria_text="All landholding farmer families with cultivable landholding in their names. Institutional landholders and high-income tax payees are excluded.",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="All Crops",
+                    min_land_acres=0.1,
+                    max_land_acres=None,
+                    required_documents="Aadhaar card, Landholding 7/12 or Khatauni papers, Bank account passbook, Mobile number linked to Aadhaar.",
+                    official_website_url="https://pmkisan.gov.in/",
+                    application_url="https://pmkisan.gov.in/RegistrationFormNew.aspx",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="PMFBY (Pradhan Mantri Fasal Bima Yojana)",
+                    scheme_code="PMFBY-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.INSURANCE,
+                    short_description="Comprehensive financial risk insurance against crop loss or damage due to non-preventable natural risks.",
+                    full_description="Offers financial support to farmers suffering crop loss/damage arising out of unforeseen events, stabilizing farmer incomes.",
+                    benefits="Uniform premium of only 2% for Kharif crops, 1.5% for Rabi crops, and 5% for annual commercial/horticultural crops. Balance premium paid by Government.",
+                    eligibility_criteria_text="All farmers growing notified crops in notified areas including sharecroppers and tenant farmers.",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="Wheat, Rice, Tomato, Mustard, Cotton, Maize, Pulses, Onion",
+                    min_land_acres=0.1,
+                    max_land_acres=None,
+                    required_documents="Land possession certificate / Sowing certificate, Aadhaar card, Bank passbook copy, Crop insurance proposal form.",
+                    official_website_url="https://pmfby.gov.in/",
+                    application_url="https://pmfby.gov.in/farmerRegistrationForm",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="SMAM (Sub-Mission on Agricultural Mechanization)",
+                    scheme_code="SMAM-MECH-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.EQUIPMENT,
+                    short_description="Financial assistance of 40% to 50% for procurement of modern agricultural machinery and equipment.",
+                    full_description="Promotes agricultural mechanization among small and marginal farmers in regions where farm power availability is low.",
+                    benefits="Direct subsidy up to 50% or ₹1,50,000 to ₹3,00,000 on approved equipment like rotavator, laser land leveler, power tiller, and seed drill.",
+                    eligibility_criteria_text="Individual farmers, SHGs, FPOs, and cooperative societies. Small and marginal farmers receive priority 50% subsidy.",
+                    eligible_farmer_categories="Small, Marginal",
+                    eligible_crops="All Crops",
+                    min_land_acres=0.5,
+                    max_land_acres=None,
+                    required_documents="Aadhaar card, Land ownership record (7/12, 8A or Jamabandi), Bank account details, Tractor RC (if tractor-operated implements applied for).",
+                    official_website_url="https://agrimachinery.nic.in/",
+                    application_url="https://agrimachinery.nic.in/Index/FarmerRegistration",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="Per Drop More Crop - PMKSY (Micro-Irrigation)",
+                    scheme_code="PMKSY-PDMC-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.IRRIGATION,
+                    short_description="Subsidy up to 55% for small/marginal farmers to install Drip and Sprinkler micro-irrigation systems.",
+                    full_description="Focuses on enhancing water use efficiency at farm level through micro-irrigation technologies, reducing water wastage and boosting crop yields.",
+                    benefits="55% subsidy on total unit cost of drip/sprinkler system for small/marginal farmers (< 5 acres) and 45% for other farmers.",
+                    eligibility_criteria_text="Farmers holding cultivable land with an assured water source (well, borewell, farm pond, or canal connectivity).",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="Tomato, Sugarcane, Cotton, Banana, Citrus, Wheat, Vegetables, Pulses",
+                    min_land_acres=0.5,
+                    max_land_acres=12.5,
+                    required_documents="7/12 extract / Land registry, Electricity bill of water pump or certificate of water source, Aadhaar, Bank passbook, Quotation from empanelled vendor.",
+                    official_website_url="https://pmksy.gov.in/",
+                    application_url="https://pmksy.gov.in/microirrigation/",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="PKVY (Paramparagat Krishi Vikas Yojana - Organic Farming)",
+                    scheme_code="PKVY-ORG-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.SUBSIDY,
+                    short_description="Financial assistance of ₹50,000 per hectare over 3 years for cluster-based organic farming and certification.",
+                    full_description="Encourages organic farming through cluster approach and Participatory Guarantee System (PGS) certification, supporting chemical-free agriculture.",
+                    benefits="₹31,000/ha for organic inputs (seeds, bio-fertilizers, vermicompost), ₹8,800/ha for post-harvest management, packaging, and marketing assistance.",
+                    eligibility_criteria_text="Farmers forming a cluster of 20 hectares or more willing to practice certified organic agriculture under PGS-India.",
+                    eligible_farmer_categories="Small, Marginal",
+                    eligible_crops="All Crops",
+                    min_land_acres=0.5,
+                    max_land_acres=5.0,
+                    required_documents="Aadhaar card, Land title documents, Bank details, PGS Cluster registration undertaking.",
+                    official_website_url="https://pgsindia-ncof.gov.in/",
+                    application_url="https://pgsindia-ncof.gov.in/pkvy/index.aspx",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="Kisan Credit Card (KCC) Scheme",
+                    scheme_code="KCC-CREDIT-2026",
+                    government_type=GovernmentType.CENTRAL,
+                    state="All India",
+                    category=SchemeCategory.LOAN_CREDIT,
+                    short_description="Concessional institutional crop loan credit limit up to ₹3,00,000 at effective 4% annual interest with prompt repayment incentive.",
+                    full_description="Simplifies flexible short-term credit requirements for cultivation of crops, post-harvest expenses, produce marketing, and farm asset maintenance.",
+                    benefits="Low 7% nominal interest rate with 3% prompt repayment subvention, resulting in effective 4% annual interest rate. No collateral needed up to ₹1.60 Lakh.",
+                    eligibility_criteria_text="All farmers—individuals/joint borrowers, tenant farmers, oral lessees, and sharecroppers.",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="All Crops",
+                    min_land_acres=0.1,
+                    max_land_acres=None,
+                    required_documents="Completed KCC application form, Aadhaar/Voter ID, Land record documents attested by revenue authority, Passport size photograph.",
+                    official_website_url="https://www.myscheme.gov.in/schemes/kcc",
+                    application_url="https://www.myscheme.gov.in/schemes/kcc",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="Magel Tyala Shettale (Farm Pond Scheme - Maharashtra)",
+                    scheme_code="MAHA-SHETTALE-2026",
+                    government_type=GovernmentType.STATE,
+                    state="Maharashtra",
+                    category=SchemeCategory.IRRIGATION,
+                    short_description="Financial subsidy up to ₹50,000 credited directly into farmer account upon construction of personal farm pond.",
+                    full_description="Maharashtra state government initiative to provide permanent water storage for drought-prone and rainfed regions to protect standing crops.",
+                    benefits="Direct subsidy grant of up to ₹50,000 to construct a farm pond for water harvesting and micro-irrigation.",
+                    eligibility_criteria_text="Farmers resident in Maharashtra with minimum 0.50 hectares (1.25 acres) cultivable landholding with suitable catchment slope.",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="All Crops",
+                    min_land_acres=1.25,
+                    max_land_acres=None,
+                    required_documents="7/12 & 8-A land extract, Caste certificate (if applicable), Aadhaar card, Bank passbook, Farm site GPS survey sketch.",
+                    official_website_url="https://mahadbt.maharashtra.gov.in/",
+                    application_url="https://mahadbt.maharashtra.gov.in/Farmer/",
+                    is_verified=True,
+                    is_active=True
+                ),
+                GovernmentScheme(
+                    name="Punjab Subsidized Certified Seed Distribution Scheme",
+                    scheme_code="PB-SEED-2026",
+                    government_type=GovernmentType.STATE,
+                    state="Punjab",
+                    category=SchemeCategory.CROP_SUPPORT,
+                    short_description="Direct price subsidy up to ₹1,000 per quintal on certified seeds distributed through PUNSEED centres.",
+                    full_description="Department of Agriculture Punjab provides up to ₹1,000 per quintal direct subsidy on certified quality seed varieties to boost crop yield.",
+                    benefits="Direct subsidy up to 50% or maximum ₹1,000/quintal on certified seeds purchased from state agricultural centers.",
+                    eligibility_criteria_text="Cultivating farmers in Punjab owning or leasing farm land.",
+                    eligible_farmer_categories="Small, Marginal, Large",
+                    eligible_crops="Wheat, Rice, Mustard, Maize",
+                    min_land_acres=0.5,
+                    max_land_acres=10.0,
+                    required_documents="Aadhaar card, Proof of landholding (Fard/Jamabandi), Bank account details.",
+                    official_website_url="https://agri.punjab.gov.in/",
+                    application_url="https://agri.punjab.gov.in/",
+                    is_verified=True,
+                    is_active=True
+                )
+            ]
+            for s in schemes:
+                db.add(s)
+            db.commit()
+            print(f"Seeded {len(schemes)} Government Schemes.")
+
+        # 2. Buyer Requirements & Matching Offers
+        customer_user = db.query(User).filter(User.email == "customer@agrivision.com").first()
+        farmer_user = db.query(User).filter(User.email == "farmer@agrivision.com").first()
+        dealer_user = db.query(User).filter(User.email == "dealer@agrivision.com").first()
+        admin_user = db.query(User).filter(User.email == "admin@agrivision.com").first()
+
+        if customer_user and customer_user.customer_profile:
+            cust_prof = customer_user.customer_profile
+            farmer_prof = farmer_user.farmer_profile if farmer_user else None
+
+            if not db.query(BuyerRequirement).first():
+                print("Seeding sample Buyer Requirements...")
+                req1 = BuyerRequirement(
+                    buyer_id=cust_prof.id,
+                    title="Bulk Organic Tomatoes Needed for Retail",
+                    crop_name="Tomato",
+                    variety="Desi Organic / Roma",
+                    quantity=25.0,
+                    unit="Quintal",
+                    min_quality_grade="Grade A (Standard)",
+                    target_price=2100.0,
+                    price_unit="₹/Quintal",
+                    required_date=datetime.now(timezone.utc) + timedelta(days=14),
+                    delivery_preference="Buyer Warehouse Delivery",
+                    location_city=customer_user.district or "Ludhiana",
+                    state=customer_user.state or "Punjab",
+                    description="Urgent requirement for organic farm-fresh tomatoes. Needs safe crate packing.",
+                    status=RequirementStatus.OPEN
+                )
+                req2 = BuyerRequirement(
+                    buyer_id=cust_prof.id,
+                    title="Premium Milling Grade Sharbati Wheat",
+                    crop_name="Wheat",
+                    variety="Sharbati / PBW-725",
+                    quantity=50.0,
+                    unit="Quintal",
+                    min_quality_grade="Grade A (Export/Premium)",
+                    target_price=2350.0,
+                    price_unit="₹/Quintal",
+                    required_date=datetime.now(timezone.utc) + timedelta(days=30),
+                    delivery_preference="Farmer Farmgate Pickup",
+                    location_city="Ludhiana",
+                    state="Punjab",
+                    description="Premium milling grade wheat required for direct retail distribution.",
+                    status=RequirementStatus.OPEN
+                )
+                db.add(req1)
+                db.add(req2)
+                db.commit()
+                db.refresh(req1)
+
+                # Seed sample Offer
+                if farmer_prof:
+                    listing = db.query(CropListing).filter(CropListing.farmer_id == farmer_prof.id).first()
+                    print("Seeding sample Offer with negotiation timeline...")
+                    offer = Offer(
+                        offer_code="OFF-AGRI9201",
+                        requirement_id=req1.id,
+                        listing_id=listing.id if listing else None,
+                        buyer_id=cust_prof.id,
+                        farmer_id=farmer_prof.id,
+                        produce_name="Grade-A Organic Tomatoes",
+                        quantity=20.0,
+                        unit="Quintal",
+                        offered_price=2150.0,
+                        price_unit="₹/Quintal",
+                        delivery_preference="Farm Pickup",
+                        location="Village Bhamian Kalan, Ludhiana",
+                        message="Direct harvest ready for dispatch. Certified organic quality assured.",
+                        status=OfferStatus.ACCEPTED,
+                        accepted_at=datetime.now(timezone.utc) - timedelta(days=1)
+                    )
+                    db.add(offer)
+                    db.commit()
+                    db.refresh(offer)
+
+                    neg1 = OfferNegotiation(
+                        offer_id=offer.id,
+                        sender_user_id=customer_user.id,
+                        sender_role="CUSTOMER",
+                        action_type=NegotiationActionType.OFFER_MADE,
+                        offered_price=2050.0,
+                        quantity=20.0,
+                        message="Can you supply 20 Quintals at ₹2,050/Quintal?"
+                    )
+                    neg2 = OfferNegotiation(
+                        offer_id=offer.id,
+                        sender_user_id=farmer_user.id,
+                        sender_role="FARMER",
+                        action_type=NegotiationActionType.COUNTERED,
+                        offered_price=2150.0,
+                        quantity=20.0,
+                        message="Due to high quality organic sorting, best price is ₹2,150/Quintal."
+                    )
+                    neg3 = OfferNegotiation(
+                        offer_id=offer.id,
+                        sender_user_id=customer_user.id,
+                        sender_role="CUSTOMER",
+                        action_type=NegotiationActionType.ACCEPTED,
+                        offered_price=2150.0,
+                        quantity=20.0,
+                        message="Agreed at ₹2,150/Quintal! We will send transport on Monday."
+                    )
+                    db.add(neg1)
+                    db.add(neg2)
+                    db.add(neg3)
+
+                    # Seed sample review
+                    sample_rev = TransactionReview(
+                        review_type=ReviewType.BUYER_TO_FARMER,
+                        offer_id=offer.id,
+                        reviewer_id=customer_user.id,
+                        target_user_id=farmer_user.id,
+                        rating=5,
+                        category_ratings={"Communication": 5, "Produce Quality": 5, "Delivery": 5, "Overall": 5},
+                        comment="Superb organic tomatoes! Perfectly graded and weighed accurately. Will buy regularly from Rajesh."
+                    )
+                    db.add(sample_rev)
+                    db.commit()
+
+        # 3. Dealer Discounts & Low Stock Alerts
+        if dealer_user and dealer_user.shopkeeper_profile:
+            shop = db.query(Shop).filter(Shop.owner_id == dealer_user.shopkeeper_profile.id).first()
+            if shop:
+                # Set low stock threshold and adjust a product to trigger alert
+                prods = db.query(ShopProduct).filter(ShopProduct.shop_id == shop.id).all()
+                if prods:
+                    # Make first product low stock to demonstrate alert
+                    prods[0].stock_quantity = 4
+                    prods[0].low_stock_threshold = 15
+                    db.commit()
+
+                    if not db.query(DealerDiscount).first():
+                        print("Seeding Dealer Discounts...")
+                        disc = DealerDiscount(
+                            shop_id=shop.id,
+                            product_id=prods[0].id,
+                            title="Pre-Sowing Season Discount - 15% OFF",
+                            discount_type=DiscountType.PERCENTAGE,
+                            discount_value=15.0,
+                            min_quantity=2,
+                            max_discount_inr=500.0,
+                            start_date=datetime.now(timezone.utc) - timedelta(days=2),
+                            end_date=datetime.now(timezone.utc) + timedelta(days=28),
+                            description="Special early bird discount for registered local farmers.",
+                            is_active=True
+                        )
+                        db.add(disc)
+                        db.commit()
+
+        # 4. Sample Audit Logs
+        if not db.query(AuditLog).first():
+            print("Seeding initial System Audit Logs...")
+            audit1 = AuditLog(
+                user_id=admin_user.id if admin_user else None,
+                user_name=admin_user.full_name if admin_user else "Admin",
+                user_role="ADMIN",
+                action="SYSTEM_INITIALIZATION",
+                entity_type="System",
+                entity_id="1",
+                description="AgriVision upgraded to Version 3",
+                after_state={"version": "AgriVision V3", "status": "UPGRADED"},
+                ip_address="127.0.0.1"
+            )
+            audit2 = AuditLog(
+                user_id=farmer_user.id if farmer_user else None,
+                user_name=farmer_user.full_name if farmer_user else "Farmer",
+                user_role="FARMER",
+                action="PROFILE_VERIFIED",
+                entity_type="FarmerProfile",
+                entity_id=str(farmer_user.farmer_profile.id) if (farmer_user and farmer_user.farmer_profile) else "1",
+                description="Farmer profile registered and verified",
+                after_state={"status": "VERIFIED", "land_acres": 3.5},
+                ip_address="127.0.0.1"
+            )
+            db.add(audit1)
+            db.add(audit2)
+            db.commit()
+
+        # 5. Initial Sample Notifications for Demo Experience
+        from app.models.notification import Notification
+        if not db.query(Notification).first():
+            print("Seeding initial V3 Notifications across roles...")
+            sample_notifs = []
+            if farmer_user:
+                sample_notifs.extend([
+                    Notification(
+                        user_id=farmer_user.id,
+                        user_role="FARMER",
+                        notification_type="OFFER",
+                        title="💰 New Buyer Offer",
+                        message="ABC Foods offered ₹2,200/quintal for your red onions.",
+                        related_entity_type="Offer",
+                        action_url="/farmer/offers",
+                        link_url="/farmer/offers",
+                        priority="INFO",
+                        event_key=f"SEED_NOTIF_1_{farmer_user.id}"
+                    ),
+                    Notification(
+                        user_id=farmer_user.id,
+                        user_role="FARMER",
+                        notification_type="SCHEME",
+                        title="🏛️ New Scheme Available",
+                        message="A new verified scheme matching your 5-acre profile is available: PM-KISAN & PMFBY.",
+                        related_entity_type="GovernmentScheme",
+                        action_url="/farmer/schemes",
+                        link_url="/farmer/schemes",
+                        priority="SUCCESS",
+                        event_key=f"SEED_NOTIF_2_{farmer_user.id}"
+                    ),
+                    Notification(
+                        user_id=farmer_user.id,
+                        user_role="FARMER",
+                        notification_type="NEGOTIATION",
+                        title="🤝 Counter Offer",
+                        message="Buyer updated their offer to ₹2,250/quintal.",
+                        related_entity_type="Offer",
+                        action_url="/farmer/offers",
+                        link_url="/farmer/offers",
+                        priority="INFO",
+                        event_key=f"SEED_NOTIF_3_{farmer_user.id}"
+                    )
+                ])
+            if buyer_user:
+                sample_notifs.extend([
+                    Notification(
+                        user_id=buyer_user.id,
+                        user_role="CUSTOMER",
+                        notification_type="REVIEW",
+                        title="⭐ New Rating Received",
+                        message="A farmer rated your transaction experience with 5 stars.",
+                        related_entity_type="TransactionReview",
+                        action_url="/customer",
+                        link_url="/customer",
+                        priority="SUCCESS",
+                        event_key=f"SEED_NOTIF_4_{buyer_user.id}"
+                    ),
+                    Notification(
+                        user_id=buyer_user.id,
+                        user_role="CUSTOMER",
+                        notification_type="NEGOTIATION",
+                        title="🤝 Farmer Counter Offer",
+                        message="Farmer countered your offer at ₹2,250/quintal.",
+                        related_entity_type="Offer",
+                        action_url="/customer/offers",
+                        link_url="/customer/offers",
+                        priority="INFO",
+                        event_key=f"SEED_NOTIF_5_{buyer_user.id}"
+                    )
+                ])
+            if dealer_user:
+                sample_notifs.append(
+                    Notification(
+                        user_id=dealer_user.id,
+                        user_role="SHOPKEEPER",
+                        notification_type="STOCK",
+                        title="📦 Low Stock Warning",
+                        message="Product stock has fallen below your configured alert threshold.",
+                        related_entity_type="ShopProduct",
+                        action_url="/shopkeeper/low-stock",
+                        link_url="/shopkeeper/low-stock",
+                        priority="WARNING",
+                        event_key=f"SEED_NOTIF_6_{dealer_user.id}"
+                    )
+                )
+            if admin_user:
+                sample_notifs.append(
+                    Notification(
+                        user_id=admin_user.id,
+                        user_role="ADMIN",
+                        notification_type="SYSTEM",
+                        title="🛡️ Verification Request",
+                        message="A new agricultural account is waiting for administrator verification.",
+                        related_entity_type="User",
+                        action_url="/admin/verifications",
+                        link_url="/admin/verifications",
+                        priority="INFO",
+                        event_key=f"SEED_NOTIF_7_{admin_user.id}"
+                    )
+                )
+            db.add_all(sample_notifs)
+            db.commit()
+
+        print("Version 3 data verified and seeded successfully.")
+    except Exception as e:
+        db.rollback()
+        print(f"Error seeding V3 data: {e}")
 
 if __name__ == "__main__":
     seed_database()

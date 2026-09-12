@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Store, PackageCheck, Wrench, ShoppingBag, LogOut, Menu, X, ShieldCheck, ChevronRight } from 'lucide-react';
+import {
+  Store,
+  PackageCheck,
+  Wrench,
+  ShoppingBag,
+  LogOut,
+  Menu,
+  X,
+  ShieldCheck,
+  ChevronRight,
+  Tag,
+  TrendingUp,
+  AlertTriangle,
+  Star
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSelector } from '../components/common/LanguageSelector';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
+import { ConnectivityBadge } from '../components/common/ConnectivityBadge';
+import { NotificationBell } from '../components/common/NotificationBell';
 
 export const ShopkeeperLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -15,6 +31,10 @@ export const ShopkeeperLayout: React.FC = () => {
   const navItems = [
     { name: t('common.dealerPortal', 'Dealer Dashboard'), path: '/shopkeeper', icon: Store },
     { name: t('nav.shopInventory', 'Products & Inventory'), path: '/shopkeeper/products', icon: PackageCheck },
+    { name: 'Promotional Discounts', path: '/shopkeeper/discounts', icon: Tag },
+    { name: 'Sowing & Demand Forecast', path: '/shopkeeper/demand', icon: TrendingUp },
+    { name: 'Low Stock Alerts', path: '/shopkeeper/low-stock', icon: AlertTriangle },
+    { name: 'Customer Reviews', path: '/shopkeeper/reviews', icon: Star },
     { name: t('nav.machineryHub', 'Equipment & Machinery'), path: '/shopkeeper/equipment', icon: Wrench },
     { name: t('nav.customerOrders', 'Customer Orders'), path: '/shopkeeper/orders', icon: ShoppingBag },
   ];
@@ -103,12 +123,24 @@ export const ShopkeeperLayout: React.FC = () => {
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 rounded-xl hover:bg-slate-100">
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-800">
-              {t('common.dealerPortal', 'Agri Inputs & Machinery Management')}
-            </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-slate-800">
+                  {t('common.dealerPortal', 'Agri Inputs & Machinery Management')}
+                </h2>
+                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+                  Version 3
+                </span>
+              </div>
+              <p className="hidden sm:block text-[11px] text-slate-400 font-medium">
+                Predictive Inventory, Discounts & Verified Farmer Relations
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
+            <ConnectivityBadge />
+            <NotificationBell />
             <LanguageSelector variant="light" />
           </div>
         </header>

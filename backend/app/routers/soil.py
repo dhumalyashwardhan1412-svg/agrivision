@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database.session import get_db
 from app.core.dependencies import get_current_user
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.farm import Farm
 from app.models.soil import SoilTest, SoilSourceType
 from app.schemas.soil import SoilTestCreateLab, SoilTestCreateAI, SoilTestResponse, SoilAnalysisResult
@@ -20,6 +20,9 @@ def record_laboratory_soil_test(
     farm = db.query(Farm).filter(Farm.id == data_in.farm_id).first()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
+
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to record tests for this farm")
 
     evaluation = soil_service.evaluate_lab_test(
         nitrogen=data_in.nitrogen,
@@ -65,6 +68,9 @@ def record_image_estimated_soil_test(
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
 
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to record tests for this farm")
+
     obs = soil_service.evaluate_image_estimate(
         visual_color_tone=data_in.visual_color_tone or "Dark Brown",
         visual_texture_notes=data_in.visual_texture_notes or "Loam",
@@ -96,6 +102,13 @@ def get_farm_soil_records(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    farm = db.query(Farm).filter(Farm.id == farm_id).first()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to access soil records for this farm")
+
     return db.query(SoilTest).filter(SoilTest.farm_id == farm_id).order_by(SoilTest.created_at.desc()).all()
 
 @router.get("/analyze/{soil_test_id}", response_model=SoilAnalysisResult)
@@ -107,6 +120,10 @@ def analyze_specific_soil_test(
     soil_test = db.query(SoilTest).filter(SoilTest.id == soil_test_id).first()
     if not soil_test:
         raise HTTPException(status_code=404, detail="Soil test not found")
+
+    farm = db.query(Farm).filter(Farm.id == soil_test.farm_id).first()
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or (farm and farm.farmer_id != current_user.farmer_profile.id)):
+        raise HTTPException(status_code=403, detail="Not authorized to view analysis for this soil test")
 
     if soil_test.source_type == SoilSourceType.IMAGE_ESTIMATE:
         return SoilAnalysisResult(

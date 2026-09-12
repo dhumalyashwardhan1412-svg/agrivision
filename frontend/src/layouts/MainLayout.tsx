@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Sprout, LogIn, UserPlus, LogOut, LayoutDashboard, ShoppingBag, Bot, Compass, Bell, Shield, User, Menu, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { LiveMandiTicker } from '../components/dashboard/LiveMandiTicker';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
 import { LanguageSelector } from '../components/common/LanguageSelector';
+import { NotificationBell } from '../components/common/NotificationBell';
 import { marketApi } from '../services/marketApi';
 import { MarketPrice } from '../types';
 
 export const MainLayout: React.FC = () => {
-  const { user, role, logout, quickDemoLogin } = useAuth();
+  const { user, role, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [tickerPrices, setTickerPrices] = useState<MarketPrice[]>([]);
@@ -53,7 +56,7 @@ export const MainLayout: React.FC = () => {
                 Agri<span className="text-agri-700">Vision</span>
               </span>
               <span className="text-[10px] tracking-wider uppercase font-bold text-slate-400 block -mt-1">
-                Smart Agriculture OS
+                {t('common.appTagline', 'Smart Agriculture & Direct Market Platform')}
               </span>
             </div>
           </Link>
@@ -61,19 +64,16 @@ export const MainLayout: React.FC = () => {
           {/* Nav Links */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <Link to="/" className={`hover:text-agri-700 transition ${location.pathname === '/' ? 'text-agri-700' : ''}`}>
-              Overview
+              {t('nav.overview', 'Overview')}
             </Link>
             <Link to="/marketplace" className={`hover:text-agri-700 transition flex items-center gap-1 ${location.pathname.startsWith('/marketplace') ? 'text-agri-700' : ''}`}>
-              <ShoppingBag className="w-4 h-4 text-emerald-600" /> Marketplace
+              <ShoppingBag className="w-4 h-4 text-emerald-600" /> {t('nav.marketplace', 'Marketplace')}
             </Link>
             <Link to="/markets" className="hover:text-agri-700 transition flex items-center gap-1">
-              <Compass className="w-4 h-4 text-sky-600" /> APMC Mandis
+              <Compass className="w-4 h-4 text-sky-600" /> {t('nav.mandiPrices', 'APMC Mandis')}
             </Link>
             <Link to="/crop-doctor" className="hover:text-agri-700 transition flex items-center gap-1">
-              <Bot className="w-4 h-4 text-purple-600" /> Crop Doctor AI
-            </Link>
-            <Link to="/3d" className="hover:text-emerald-800 transition flex items-center gap-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-200 font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" /> 3D Digital Twin
+              <Bot className="w-4 h-4 text-purple-600" /> {t('nav.cropDoctor', 'Crop Doctor AI')}
             </Link>
           </nav>
 
@@ -83,64 +83,36 @@ export const MainLayout: React.FC = () => {
 
             {user ? (
               <div className="flex items-center gap-3">
+                <NotificationBell />
                 <Link
                   to={getDashboardRoute()}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-agri-100 text-agri-800 hover:bg-agri-200 transition shadow-2xs"
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  <span>{user.role} Dashboard</span>
+                  <span>{user.role} {t('nav.dashboard', 'Dashboard')}</span>
                 </Link>
 
                 <button
                   onClick={logout}
                   className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-100 transition"
-                  title="Logout"
+                  title={t('common.signOut', 'Sign Out')}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                {/* 1-Click Demo Login Selector */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold text-slate-600">
-                  <span className="px-2 text-slate-400">Demo:</span>
-                  <button
-                    onClick={() => quickDemoLogin('FARMER')}
-                    className="px-2.5 py-1 bg-white rounded-lg shadow-2xs hover:text-agri-700 transition"
-                  >
-                    Farmer
-                  </button>
-                  <button
-                    onClick={() => quickDemoLogin('CUSTOMER')}
-                    className="px-2.5 py-1 bg-white rounded-lg shadow-2xs hover:text-agri-700 transition"
-                  >
-                    Buyer
-                  </button>
-                  <button
-                    onClick={() => quickDemoLogin('SHOPKEEPER')}
-                    className="px-2.5 py-1 bg-white rounded-lg shadow-2xs hover:text-agri-700 transition"
-                  >
-                    Dealer
-                  </button>
-                  <button
-                    onClick={() => quickDemoLogin('ADMIN')}
-                    className="px-2.5 py-1 bg-white rounded-lg shadow-2xs hover:text-agri-700 transition"
-                  >
-                    Admin
-                  </button>
-                </div>
-
+              <div className="flex items-center gap-2.5">
                 <Link
                   to="/login"
                   className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-agri-800 rounded-xl transition"
                 >
-                  Sign In
+                  {t('common.signIn', 'Sign In')}
                 </Link>
                 <Link
                   to="/register"
                   className="px-4 py-2 text-xs font-bold bg-agri-700 hover:bg-agri-800 text-white rounded-xl shadow-sm transition"
                 >
-                  Get Started
+                  {t('common.getStarted', 'Get Started')}
                 </Link>
               </div>
             )}
@@ -160,27 +132,31 @@ export const MainLayout: React.FC = () => {
           <div className="md:hidden p-4 bg-white border-b border-slate-200 space-y-3">
             <nav className="flex flex-col gap-2 font-semibold text-sm">
               <Link to="/" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg hover:bg-slate-50">
-                Overview
+                {t('nav.overview', 'Overview')}
               </Link>
               <Link to="/marketplace" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-emerald-600" /> Marketplace
+                <ShoppingBag className="w-4 h-4 text-emerald-600" /> {t('nav.marketplace', 'Marketplace')}
               </Link>
               <Link to="/markets" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-2">
-                <Compass className="w-4 h-4 text-sky-600" /> APMC Mandis
+                <Compass className="w-4 h-4 text-sky-600" /> {t('nav.mandiPrices', 'APMC Mandis')}
               </Link>
               <Link to="/crop-doctor" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-2">
-                <Bot className="w-4 h-4 text-purple-600" /> Crop Doctor AI
+                <Bot className="w-4 h-4 text-purple-600" /> {t('nav.cropDoctor', 'Crop Doctor AI')}
               </Link>
             </nav>
 
             <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between px-1 pb-1">
+                <span className="text-xs font-semibold text-slate-500">{t('common.language', 'Language')}:</span>
+                <LanguageSelector variant="light" />
+              </div>
               {user ? (
                 <Link
                   to={getDashboardRoute()}
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center block py-2.5 bg-agri-700 text-white font-bold rounded-xl text-sm"
                 >
-                  Go to {user.role} Dashboard
+                  {t('farmer.activeFarm', 'Go to')} {user.role} {t('nav.dashboard', 'Dashboard')}
                 </Link>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -189,14 +165,14 @@ export const MainLayout: React.FC = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-center py-2 bg-slate-100 font-bold rounded-xl text-xs"
                   >
-                    Sign In
+                    {t('common.signIn', 'Sign In')}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-center py-2 bg-agri-700 text-white font-bold rounded-xl text-xs"
                   >
-                    Register
+                    {t('common.register', 'Register')}
                   </Link>
                 </div>
               )}
@@ -219,44 +195,44 @@ export const MainLayout: React.FC = () => {
               <span>AgriVision Platform</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Empowering farmers with hybrid AI recommendations, certified soil analysis, APMC mandi intelligence, and direct marketplace commerce.
+              {t('landing.footerDesc', 'Empowering farmers with hybrid AI recommendations, certified soil analysis, APMC mandi intelligence, and direct marketplace commerce.')}
             </p>
           </div>
 
           <div>
-            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">Farmer Tools</h5>
+            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">{t('landing.footerFarmerTools', 'Farmer Tools')}</h5>
             <ul className="space-y-2 text-xs">
-              <li><Link to="/farmer/soil" className="hover:text-white transition">Soil Testing Lab & AI</Link></li>
-              <li><Link to="/farmer/recommendations" className="hover:text-white transition">Hybrid Crop Suitability</Link></li>
-              <li><Link to="/farmer/profit" className="hover:text-white transition">Profit & ROI Calculator</Link></li>
-              <li><Link to="/farmer/doctor" className="hover:text-white transition">Crop Doctor (Disease Scan)</Link></li>
+              <li><Link to="/farmer/recommendations" className="hover:text-white transition">{t('nav.cropRecs', 'Crop Recommendations')}</Link></li>
+              <li><Link to="/farmer/plans" className="hover:text-white transition">{t('nav.farmingPlans', 'Farming Plans')}</Link></li>
+              <li><Link to="/farmer/profit" className="hover:text-white transition">{t('nav.profitCalc', 'Profit & ROI Calculator')}</Link></li>
+              <li><Link to="/farmer/doctor" className="hover:text-white transition">{t('nav.cropDoctor', 'Crop Doctor (Disease Scan)')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">Market & Commerce</h5>
+            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">{t('landing.footerMarketCommerce', 'Market & Commerce')}</h5>
             <ul className="space-y-2 text-xs">
-              <li><Link to="/marketplace" className="hover:text-white transition">Direct Farm Marketplace</Link></li>
-              <li><Link to="/farmer/equipment" className="hover:text-white transition">Machinery & Tractor Rentals</Link></li>
-              <li><Link to="/markets" className="hover:text-white transition">APMC Mandi Price Ticker</Link></li>
-              <li><Link to="/farmer/report" className="hover:text-white transition">Smart Farm PDF Reports</Link></li>
+              <li><Link to="/marketplace" className="hover:text-white transition">{t('nav.marketplace', 'Direct Farm Marketplace')}</Link></li>
+              <li><Link to="/farmer/equipment" className="hover:text-white transition">{t('nav.machineryHub', 'Machinery & Tractor Rentals')}</Link></li>
+              <li><Link to="/markets" className="hover:text-white transition">{t('nav.mandiPrices', 'APMC Mandi Price Ticker')}</Link></li>
+              <li><Link to="/farmer/report" className="hover:text-white transition">{t('nav.smartReport', 'Smart Farm PDF Reports')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">Advisory & Compliance</h5>
+            <h5 className="text-white font-bold mb-3 text-xs uppercase tracking-wider">{t('landing.footerAdvisory', 'Advisory & Compliance')}</h5>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              AgriVision incorporates agro-climatic norms from ICAR & PAU agronomic standards. Soil assays & crop recommendations are decision-support tools.
+              {t('landing.footerAdvisoryDesc', 'AgriVision incorporates agro-climatic norms from ICAR & PAU agronomic standards. Soil assays & crop recommendations are decision-support tools.')}
             </p>
             <div className="mt-3 inline-flex items-center gap-1.5 text-emerald-400 font-semibold text-xs">
-              <Shield className="w-4 h-4" /> 100% Verified Agmarknet Data
+              <Shield className="w-4 h-4" /> {t('landing.verifiedData', '100% Verified Agmarknet Data')}
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
-          <p>© 2026 AgriVision Inc. Smart Agriculture & Precision Agritech.</p>
-          <p className="mt-2 sm:mt-0">Built with React, Vite, TypeScript & FastAPI</p>
+          <p>{t('landing.copyright', '© 2026 AgriVision Inc. Smart Agriculture & Precision Agritech.')}</p>
+          <p className="mt-2 sm:mt-0">{t('landing.techStack', 'Built with React, Vite, TypeScript & FastAPI')}</p>
         </div>
       </footer>
 

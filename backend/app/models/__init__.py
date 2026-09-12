@@ -1,6 +1,6 @@
 from app.database.database import Base
 from app.models.user import (
-    User, UserRole, UserAccountStatus, ModerationAction,
+    User, UserRole, UserAccountStatus, UserVerificationStatus, ModerationAction,
     ModerationActionType, UserReport, ReportStatus,
     FarmerProfile, CustomerProfile, ShopkeeperProfile
 )
@@ -15,12 +15,20 @@ from app.models.listing import CropListing, Review, ListingStatus
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.notification import Notification
 from app.models.ai_analysis import AIAnalysis
+from app.models.scheme import GovernmentScheme, SavedScheme, GovernmentType, SchemeCategory
+from app.models.requirement import BuyerRequirement, RequirementStatus
+from app.models.offer import Offer, OfferStatus, OfferNegotiation, NegotiationActionType
+from app.models.review import TransactionReview, ReviewType
+from app.models.dealer_discount import DealerDiscount, DiscountType
+from app.models.audit_log import AuditLog
+from app.models.offline_sync import OfflineSyncRecord, SyncStatus
 
 __all__ = [
     "Base",
     "User",
     "UserRole",
     "UserAccountStatus",
+    "UserVerificationStatus",
     "ModerationAction",
     "ModerationActionType",
     "UserReport",
@@ -52,5 +60,22 @@ __all__ = [
     "OrderItem",
     "OrderStatus",
     "Notification",
-    "AIAnalysis"
+    "AIAnalysis",
+    "GovernmentScheme",
+    "SavedScheme",
+    "GovernmentType",
+    "SchemeCategory",
+    "BuyerRequirement",
+    "RequirementStatus",
+    "Offer",
+    "OfferStatus",
+    "OfferNegotiation",
+    "NegotiationActionType",
+    "TransactionReview",
+    "ReviewType",
+    "DealerDiscount",
+    "DiscountType",
+    "AuditLog",
+    "OfflineSyncRecord",
+    "SyncStatus"
 ]

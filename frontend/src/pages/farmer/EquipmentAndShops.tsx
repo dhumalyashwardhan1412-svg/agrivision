@@ -8,10 +8,13 @@ import { Input } from '../../components/ui/Input';
 import { AgriMap } from '../../components/maps/AgriMap';
 import { marketApi } from '../../services/marketApi';
 import { farmApi } from '../../services/farmApi';
+import { useAuth } from '../../context/AuthContext';
 import { Shop, Equipment, Farm, EquipmentRental } from '../../types';
 import { formatINR } from '../../utils/formatters';
 
 export const EquipmentAndShops: React.FC = () => {
+  const { user } = useAuth();
+  const [activeFarm, setActiveFarm] = useState<Farm | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
   const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
   const [myRentals, setMyRentals] = useState<EquipmentRental[]>([]);
@@ -24,11 +27,18 @@ export const EquipmentAndShops: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [shopData, eqData, rentals] = await Promise.all([
-        marketApi.getShops({ user_lat: 30.9010, user_lng: 75.8573 }),
+      const [farmList, eqData, rentals] = await Promise.all([
+        farmApi.getMyFarms().catch(() => []),
         marketApi.getEquipment(),
         marketApi.getMyRentals(),
       ]);
+      const farm = farmList.length > 0 ? farmList[0] : null;
+      setActiveFarm(farm);
+
+      const lat = farm?.latitude || user?.latitude || 18.5204;
+      const lng = farm?.longitude || user?.longitude || 73.8567;
+      const shopData = await marketApi.getShops({ user_lat: lat, user_lng: lng });
+
       setShops(shopData);
       setEquipmentList(eqData);
       setMyRentals(rentals);
@@ -81,12 +91,12 @@ export const EquipmentAndShops: React.FC = () => {
       {/* Leaflet Interactive Map */}
       <div className="h-[480px]">
         <AgriMap
-          centerLat={30.9010}
-          centerLng={75.8573}
+          centerLat={activeFarm?.latitude || user?.latitude || 18.5204}
+          centerLng={activeFarm?.longitude || user?.longitude || 73.8567}
           shops={shops}
-          farmLat={30.9010}
-          farmLng={75.8573}
-          farmName="Green Valley Eco Farm"
+          farmLat={activeFarm?.latitude || user?.latitude || 18.5204}
+          farmLng={activeFarm?.longitude || user?.longitude || 73.8567}
+          farmName={activeFarm?.name || (user?.full_name ? `${user.full_name.split(' ')[0]}'s Farm` : 'My Farm')}
         />
       </div>
 

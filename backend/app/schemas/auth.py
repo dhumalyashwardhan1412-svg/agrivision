@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime
 from app.models.user import UserRole, UserAccountStatus
 
@@ -8,18 +8,18 @@ class UserRegister(BaseModel):
     password: str
     full_name: str
     phone_number: Optional[str] = None
-    role: UserRole = UserRole.FARMER
+    role: Union[UserRole, str] = UserRole.FARMER
     preferred_language: Optional[str] = "en" # en, hi, mr
-    state: Optional[str] = "Punjab"
-    district: Optional[str] = "Ludhiana"
+    state: Optional[str] = None
+    district: Optional[str] = None
     address: Optional[str] = None
-    latitude: Optional[float] = 30.9010
-    longitude: Optional[float] = 75.8573
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     
     # Extra role-specific initial fields
-    total_land_area: Optional[float] = 2.5
-    irrigation_source: Optional[str] = "Borewell & Canal"
-    primary_crops: Optional[str] = "Wheat, Rice, Tomato"
+    total_land_area: Optional[float] = None
+    irrigation_source: Optional[str] = None
+    primary_crops: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -86,6 +86,8 @@ class UserResponse(BaseModel):
     farmer_profile: Optional[FarmerProfileResponse] = None
     customer_profile: Optional[CustomerProfileResponse] = None
     shopkeeper_profile: Optional[ShopkeeperProfileResponse] = None
+    total_farm_land: Optional[float] = None
+    irrigation_source: Optional[str] = None
 
     class Config:
         from_attributes = True
