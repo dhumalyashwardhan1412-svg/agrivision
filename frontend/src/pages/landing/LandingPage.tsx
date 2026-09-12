@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Sprout,
   Sparkles,
-  FlaskConical,
   TrendingUp,
   MapPin,
   Stethoscope,
@@ -22,12 +21,14 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { cropApi } from '../../services/cropApi';
 import { Crop } from '../../types';
 import { formatINR } from '../../utils/formatters';
 
 export const LandingPage: React.FC = () => {
-  const { user, quickDemoLogin } = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedCrop, setSelectedCrop] = useState<string>('Tomato');
@@ -68,77 +69,38 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-900 text-xs font-bold mb-6 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Next-Generation AI Precision Agritech Platform</span>
+            <span>{t('landing.heroBadge', 'Next-Generation AI Precision Agritech Platform')}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight max-w-4xl mx-auto leading-tight">
-            Cultivate Smarter. Maximize Yield.{' '}
-            <span className="text-agri-700 bg-clip-text">Prosper More.</span>
+            {t('landing.heroTitle', 'Cultivate Smarter. Maximize Yield.')}{' '}
+            <span className="text-agri-700 bg-clip-text">{t('landing.heroTitleHighlight', 'Prosper More.')}</span>
           </h1>
 
           <p className="mt-6 text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            AgriVision combines scientific soil analysis, hybrid multi-factor crop recommendations, real-time APMC mandi intelligence, and direct marketplace commerce in one platform.
+            {t('landing.heroDesc', 'AgriVision combines scientific soil analysis, hybrid multi-factor crop recommendations, real-time APMC mandi intelligence, and direct marketplace commerce in one platform.')}
           </p>
 
-          {/* Quick 1-Click Role Login Demo Bar */}
-          <div className="mt-10 max-w-2xl mx-auto bg-white p-4 rounded-3xl shadow-xl border border-slate-200/90 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-left">
-              <span className="text-xs font-bold text-slate-900 block">Instant 1-Click Prototype Demo</span>
-              <span className="text-[11px] text-slate-500">Explore pre-seeded workflows as:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="primary"
-                size="sm"
-                icon={Sprout}
-                onClick={async () => {
-                  await quickDemoLogin('FARMER');
-                  navigate('/farmer');
-                }}
-              >
-                Farmer
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={ShoppingBag}
-                onClick={async () => {
-                  await quickDemoLogin('CUSTOMER');
-                  navigate('/marketplace');
-                }}
-              >
-                Customer
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  await quickDemoLogin('SHOPKEEPER');
-                  navigate('/shopkeeper');
-                }}
-              >
-                Dealer
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  await quickDemoLogin('ADMIN');
-                  navigate('/admin');
-                }}
-              >
-                Admin
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                icon={Sparkles}
-                onClick={() => navigate('/3d')}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-              >
-                3D Digital Twin
-              </Button>
-            </div>
+          {/* Main Action Buttons */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Button
+              variant="primary"
+              size="lg"
+              icon={Sprout}
+              onClick={() => navigate(user ? '/farmer' : '/register')}
+              className="font-bold px-6 py-3 rounded-2xl shadow-lg shadow-agri-700/20"
+            >
+              {user ? t('landing.goToWorkspace', 'Go to Workspace') : t('landing.getStartedFree', 'Get Started Free')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              icon={ShoppingBag}
+              onClick={() => navigate('/marketplace')}
+              className="font-bold px-6 py-3 rounded-2xl border border-slate-200 shadow-sm"
+            >
+              {t('landing.browseMarketplace', 'Browse Direct Marketplace')}
+            </Button>
           </div>
 
           {/* Live Platform Highlights */}
@@ -149,11 +111,11 @@ export const LandingPage: React.FC = () => {
             </div>
             <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-left">
               <span className="text-2xl font-extrabold text-sky-700">100%</span>
-              <span className="block text-xs font-semibold text-slate-600 mt-0.5">Verified Lab NPK Interpreters</span>
+              <span className="block text-xs font-semibold text-slate-600 mt-0.5">{t('landing.verifiedData', 'Verified Agmarknet Data')}</span>
             </div>
             <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-left">
               <span className="text-2xl font-extrabold text-amber-700">50+</span>
-              <span className="block text-xs font-semibold text-slate-600 mt-0.5">Live Regional APMC Mandis</span>
+              <span className="block text-xs font-semibold text-slate-600 mt-0.5">{t('landing.statsMandis', 'APMC Mandis Tracked')}</span>
             </div>
             <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-left">
               <span className="text-2xl font-extrabold text-purple-700">0%</span>
@@ -166,9 +128,9 @@ export const LandingPage: React.FC = () => {
       {/* End-to-End Workflow Showcase Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <Badge variant="green" size="md">THE COMPLETE END-TO-END JOURNEY</Badge>
+          <Badge variant="green" size="md">{t('landing.journeyBadge', 'THE COMPLETE END-TO-END JOURNEY')}</Badge>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
-            How AgriVision Transforms Farming into a Data-Driven Enterprise
+            {t('landing.journeyTitle', 'How AgriVision Transforms Farming into a Data-Driven Enterprise')}
           </h2>
         </div>
 
@@ -177,12 +139,12 @@ export const LandingPage: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-extrabold text-lg shadow-inner">
               01
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Soil Assay & AI Visual Screening</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t('landing.step1Title', 'Smart Farm & Soil Profiling')}</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Enter certified lab NPK & pH parameters or use our topsoil photo analyzer. Get customized organic & micronutrient amendment prescriptions.
+              {t('landing.step1Desc', 'Record native soil parameters and agro-climatic zones. Get customized organic and micronutrient amendment prescriptions.')}
             </p>
             <div className="pt-2 text-xs font-bold text-emerald-700 flex items-center gap-1">
-              <FlaskConical className="w-4 h-4" /> Lab & Image Source Segregation
+              <Sprout className="w-4 h-4" /> {t('landing.step1Tag', 'Certified Agronomic Baseline')}
             </div>
           </Card>
 
@@ -190,12 +152,12 @@ export const LandingPage: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-800 flex items-center justify-center font-extrabold text-lg shadow-inner">
               02
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Hybrid Multi-Factor Recommendation</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t('landing.step2Title', 'Hybrid Multi-Factor Recommendation')}</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              No blind guessing. Our scoring engine evaluates Soil compatibility + Climate + Water availability + Market pricing + Net ROI - Pest Risk.
+              {t('landing.step2Desc', 'No blind guessing. Our scoring engine evaluates Soil compatibility + Climate + Water availability + Market pricing + Net ROI - Pest Risk.')}
             </p>
             <div className="pt-2 text-xs font-bold text-sky-700 flex items-center gap-1">
-              <Sparkles className="w-4 h-4" /> Configurable Multi-Parameter Engine
+              <Sparkles className="w-4 h-4" /> {t('landing.step2Tag', 'Configurable Multi-Parameter Engine')}
             </div>
           </Card>
 
@@ -203,12 +165,12 @@ export const LandingPage: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-lg shadow-inner">
               03
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Direct Sales & PDF Farm Advisory</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t('landing.step3Title', 'Automated Crop Calendar & Agronomy')}</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              List surplus harvest directly to consumers on the marketplace, find local tractor rentals on Leaflet maps, and download branded PDF reports.
+              {t('landing.step3Desc', 'Get day-by-day precision schedules for seed treatment, basal dose, irrigation intervals, pest scouting, and harvesting.')}
             </p>
             <div className="pt-2 text-xs font-bold text-amber-700 flex items-center gap-1">
-              <ShoppingBag className="w-4 h-4" /> Real-time Commerce & PDF Export
+              <ShoppingBag className="w-4 h-4" /> {t('landing.step3Tag', 'Organic & Modern Dual Schedules')}
             </div>
           </Card>
         </div>
@@ -220,18 +182,15 @@ export const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-                <Calculator className="w-3.5 h-3.5" /> Interactive Yield & Profit Simulator
+                <Calculator className="w-3.5 h-3.5" /> {t('landing.interactiveTitle', 'Interactive ROI & Profitability Simulator')}
               </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Simulate Your Farm Returns Before Sowing a Single Seed
+                {t('landing.interactiveSubtitle', 'Experience how precision inputs and mandi intelligence multiply farmer profits.')}
               </h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Adjust acreage and crop selection to see how precision input planning, labour optimization, and prevailing APMC rates translate to real net income.
-              </p>
 
               <div className="space-y-4 pt-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Select Crop</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">{t('landing.selectCrop', 'Select Crop:')}</label>
                   <div className="flex flex-wrap gap-2">
                     {['Tomato', 'Wheat', 'Basmati Rice', 'Onion', 'Potato', 'Mustard'].map((c) => (
                       <button
@@ -251,8 +210,8 @@ export const LandingPage: React.FC = () => {
 
                 <div>
                   <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
-                    <span>Farm Area</span>
-                    <span className="text-emerald-400">{calcArea} Acres</span>
+                    <span>{t('landing.landArea', 'Land Area (Acres):')}</span>
+                    <span className="text-emerald-400">{calcArea} {t('common.acres', 'Acres')}</span>
                   </div>
                   <input
                     type="range"
@@ -273,7 +232,7 @@ export const LandingPage: React.FC = () => {
                 <div className="flex items-center justify-between pb-4 border-b border-white/10">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Forecast Model</span>
-                    <span className="font-bold text-base text-white">{selectedCrop} ({calcArea} Acres)</span>
+                    <span className="font-bold text-base text-white">{selectedCrop} ({calcArea} {t('common.acres', 'Acres')})</span>
                   </div>
                   <span className="px-2.5 py-1 text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl">
                     {profitEstimate.profitability_rating}
@@ -282,17 +241,19 @@ export const LandingPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3.5 bg-black/20 rounded-xl border border-white/5">
-                    <span className="text-[10px] text-slate-400 block">Total Est. Cost</span>
+                    <span className="text-[10px] text-slate-400 block">{t('landing.totalInputCost', 'Total Input Cost')}</span>
                     <span className="text-xl font-extrabold text-rose-300">{formatINR(profitEstimate.cost_breakdown.total_cost_inr)}</span>
                   </div>
                   <div className="p-3.5 bg-black/20 rounded-xl border border-white/5">
-                    <span className="text-[10px] text-slate-400 block">Est. Gross Revenue</span>
+                    <span className="text-[10px] text-slate-400 block">{t('landing.grossRevenue', 'Gross Revenue')}</span>
                     <span className="text-xl font-extrabold text-sky-300">{formatINR(profitEstimate.expected_revenue_inr)}</span>
                   </div>
                   <div className="p-3.5 bg-black/20 rounded-xl border border-white/5 col-span-2">
-                    <span className="text-[10px] text-slate-400 block">Estimated Net Profit</span>
+                    <span className="text-[10px] text-slate-400 block">{t('landing.estimatedNetProfit', 'Estimated Net Profit')}</span>
                     <span className="text-3xl font-extrabold text-emerald-400">{formatINR(profitEstimate.estimated_profit_inr)}</span>
-                    <span className="text-xs text-slate-300 block mt-1">ROI: <strong>{profitEstimate.return_on_investment_roi_percent}%</strong> | Break-even Price: <strong>₹{profitEstimate.break_even_price_per_kg}/kg</strong></span>
+                    <span className="text-xs text-slate-300 block mt-1">
+                      {t('landing.netRoi', 'Net ROI')}: <strong>{profitEstimate.return_on_investment_roi_percent}%</strong> | Break-even: <strong>₹{profitEstimate.break_even_price_per_kg}/kg</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -311,12 +272,12 @@ export const LandingPage: React.FC = () => {
           <div>
             <Badge variant="green" size="md">DIRECT FROM FARM</Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-              Fresh Harvest Marketplace
+              {t('marketplace.title', 'Fresh Harvest Marketplace')}
             </h2>
           </div>
           <Link to="/marketplace">
             <Button variant="outline" size="sm" icon={ArrowRight} iconPosition="right">
-              View All Produce
+              {t('common.viewDetails', 'View All Produce')}
             </Button>
           </Link>
         </div>
@@ -346,12 +307,12 @@ export const LandingPage: React.FC = () => {
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Benchmark Price</span>
+                    <span className="text-[10px] text-slate-400 block">{t('marketplace.pricePerKg', 'Benchmark Price')}</span>
                     <span className="text-base font-extrabold text-slate-900">₹{crop.benchmark_market_price_per_kg}/kg</span>
                   </div>
                   <Link to="/marketplace">
                     <Button variant="secondary" size="sm">
-                      Browse
+                      {t('marketplace.searchPlaceholder', 'Browse')}
                     </Button>
                   </Link>
                 </div>
@@ -366,28 +327,26 @@ export const LandingPage: React.FC = () => {
         <div className="bg-gradient-to-r from-agri-800 to-emerald-700 rounded-3xl p-8 sm:p-12 text-white text-center shadow-xl relative overflow-hidden">
           <div className="max-w-2xl mx-auto space-y-4 relative z-10">
             <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-              Ready to Upgrade Your Agricultural Operations?
+              {t('landing.ctaTitle', 'Ready to Upgrade Your Agricultural Operations?')}
             </h2>
             <p className="text-xs sm:text-base text-emerald-100 leading-relaxed">
-              Join thousands of progressive farmers, buyers, and agritech dealers across India on AgriVision.
+              {t('landing.ctaDesc', 'Join thousands of progressive farmers, buyers, and agritech dealers across India on AgriVision.')}
             </p>
             <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
               <Link to="/register">
                 <Button size="lg" className="bg-white text-agri-900 hover:bg-slate-100 font-bold shadow-lg">
-                  Create Free Account
+                  {t('landing.ctaButton', 'Create Free Account')}
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-white border-white/40 hover:bg-white/10"
-                onClick={async () => {
-                  await quickDemoLogin('FARMER');
-                  navigate('/farmer');
-                }}
-              >
-                Launch Live Demo
-              </Button>
+              <Link to="/login">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-white border-white/40 hover:bg-white/10 font-bold"
+                >
+                  {t('common.signIn', 'Sign In to Workspace')}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

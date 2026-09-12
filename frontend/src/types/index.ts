@@ -25,6 +25,8 @@ export interface User {
   farmer_profile?: FarmerProfile;
   customer_profile?: CustomerProfile;
   shopkeeper_profile?: ShopkeeperProfile;
+  total_farm_land?: number;
+  irrigation_source?: string;
 }
 
 export interface FarmerProfile {
@@ -650,3 +652,340 @@ export interface ModerationStatsResponse {
   pending_reports: number;
   resolved_reports: number;
 }
+
+// ==========================================
+// AGRIVISION VERSION 3 EXTENSIONS
+// ==========================================
+
+export type GovernmentType = 'CENTRAL' | 'STATE';
+export type SchemeCategory = 'SUBSIDY' | 'INSURANCE' | 'LOAN_CREDIT' | 'EQUIPMENT' | 'IRRIGATION' | 'CROP_SUPPORT' | 'OTHER';
+
+export interface GovernmentScheme {
+  id: number;
+  name: string;
+  scheme_code: string;
+  government_type: GovernmentType;
+  state: string;
+  category: SchemeCategory;
+  short_description: string;
+  full_description?: string;
+  benefits: string;
+  eligibility_criteria_text: string;
+  eligible_farmer_categories: string;
+  eligible_crops: string;
+  min_land_acres: number;
+  max_land_acres?: number;
+  required_documents: string;
+  official_website_url?: string;
+  application_url?: string;
+  start_date?: string;
+  deadline_date?: string;
+  is_verified: boolean;
+  is_active: boolean;
+  is_demo?: boolean;
+  is_saved?: boolean;
+  last_verified_date: string;
+  created_at: string;
+  updated_at?: string;
+  eligibility_status?: 'ELIGIBLE' | 'POSSIBLY_ELIGIBLE' | 'NOT_ELIGIBLE';
+  eligibility_reasons?: string[];
+}
+
+export interface SavedScheme {
+  id: number;
+  scheme_id: number;
+  scheme: GovernmentScheme;
+  notes?: string;
+  saved_at: string;
+}
+
+export interface SchemeEligibilityResult {
+  scheme_id: number;
+  scheme_name: string;
+  status: 'ELIGIBLE' | 'POSSIBLY_ELIGIBLE' | 'NOT_ELIGIBLE';
+  score_percentage: number;
+  matched_criteria: string[];
+  unmatched_criteria: string[];
+  disclaimer: string;
+}
+
+export type RequirementStatus = 'OPEN' | 'NEGOTIATING' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'EXPIRED' | 'CANCELLED';
+
+export interface BuyerRequirement {
+  id: number;
+  buyer_id: number;
+  buyer_name?: string;
+  buyer_company?: string;
+  title: string;
+  crop_name: string;
+  variety?: string;
+  quantity: number;
+  unit: string;
+  min_quality_grade: string;
+  target_price: number;
+  price_unit: string;
+  required_date?: string;
+  delivery_preference: string;
+  location_city: string;
+  state: string;
+  description?: string;
+  status: RequirementStatus;
+  expires_at?: string;
+  created_at: string;
+  updated_at?: string;
+  total_offers_count?: number;
+}
+
+export interface FarmerBuyerRequirement extends BuyerRequirement {
+  buyer_verified?: boolean;
+  buyer_rating?: number;
+  has_my_offer: boolean;
+  my_offer_id?: number;
+  my_offer_status?: string;
+  my_offered_price?: number;
+  my_offered_quantity?: number;
+}
+
+export interface CounterRequirementInput {
+  counter_price: number;
+  quantity?: number;
+  message?: string;
+}
+
+
+export interface MatchedFarmerItem {
+  listing_id: number;
+  farmer_id: number;
+  farmer_name: string;
+  farm_location: string;
+  crop_name: string;
+  variety?: string;
+  available_quantity: number;
+  unit: string;
+  asking_price: number;
+  quality_grade: string;
+  rating: number;
+  match_score: number;
+  match_breakdown: string[];
+}
+
+export type OfferStatus = 'PENDING' | 'COUNTERED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'COMPLETED' | 'CANCELLED';
+export type NegotiationActionType = 'OFFER_MADE' | 'COUNTERED' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+
+export interface OfferNegotiation {
+  id: number;
+  sender_user_id: number;
+  sender_name?: string;
+  sender_role: string;
+  action_type: NegotiationActionType;
+  offered_price: number;
+  quantity: number;
+  message?: string;
+  created_at: string;
+}
+
+export interface Offer {
+  id: number;
+  offer_code: string;
+  requirement_id?: number;
+  listing_id?: number;
+  buyer_id: number;
+  farmer_id: number;
+  buyer_name?: string;
+  buyer_phone?: string;
+  buyer_rating?: number;
+  farmer_name?: string;
+  farmer_phone?: string;
+  farmer_rating?: number;
+  produce_name: string;
+  quantity: number;
+  unit: string;
+  offered_price: number;
+  price_unit: string;
+  delivery_preference: string;
+  location?: string;
+  message?: string;
+  status: OfferStatus;
+  expires_at?: string;
+  accepted_at?: string;
+  completed_at?: string;
+  buyer_user_id?: number;
+  farmer_user_id?: number;
+  farmer_reviewed?: boolean;
+  farmer_rating_given?: number;
+  buyer_reviewed?: boolean;
+  buyer_rating_given?: number;
+  created_at: string;
+  negotiations: OfferNegotiation[];
+}
+
+export type ReviewType = 'FARMER_TO_BUYER' | 'BUYER_TO_FARMER' | 'CUSTOMER_TO_DEALER';
+
+export interface TransactionReview {
+  id: number;
+  review_type: ReviewType;
+  order_id?: number;
+  offer_id?: number;
+  shop_id?: number;
+  reviewer_id: number;
+  reviewer_name?: string;
+  target_user_id: number;
+  target_user_name?: string;
+  rating: number;
+  category_ratings?: Record<string, number>;
+  comment?: string;
+  created_at: string;
+}
+
+export interface UserRatingSummary {
+  user_id: number;
+  average_rating: number;
+  total_reviews: number;
+  rating_distribution: Record<string, number>;
+  category_averages: Record<string, number>;
+}
+
+export type DiscountType = 'PERCENTAGE' | 'FLAT_AMOUNT';
+
+export interface DealerDiscount {
+  id: number;
+  shop_id: number;
+  product_id: number;
+  product_name?: string;
+  original_price?: number;
+  discounted_price?: number;
+  title: string;
+  discount_type: DiscountType;
+  discount_value: number;
+  min_quantity: number;
+  max_discount_inr?: number;
+  start_date: string;
+  end_date: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface LowStockProduct {
+  product_id: number;
+  shop_id: number;
+  shop_name: string;
+  product_name: string;
+  category: string;
+  current_stock: number;
+  low_stock_threshold: number;
+  status: 'HEALTHY' | 'LOW' | 'CRITICAL' | 'OUT_OF_STOCK';
+  suggested_restock: number;
+  unit: string;
+}
+
+export interface DemandCategoryForecast {
+  category: string;
+  current_stock: number;
+  sales_last_30_days: number;
+  trend: 'RISING' | 'STABLE' | 'FALLING';
+  demand_change_percent: number;
+  recommended_stock: number;
+  confidence: 'HIGH' | 'MODERATE' | 'LOW';
+}
+
+export interface DemandInsightsResponse {
+  shop_id: number;
+  shop_name: string;
+  has_sufficient_data: boolean;
+  data_notice?: string;
+  forecasts: DemandCategoryForecast[];
+  overall_trend: 'RISING' | 'STABLE' | 'FALLING';
+  monthly_sales_chart: Array<{
+    month: string;
+    actual_sales_inr: number;
+    projected_sales_inr: number;
+  }>;
+}
+
+export type UserVerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface AdminUserItem {
+  id: number;
+  email: string;
+  full_name: string;
+  phone_number?: string;
+  role: UserRole;
+  status: UserAccountStatus;
+  verification_status: UserVerificationStatus;
+  verified_at?: string;
+  verification_notes?: string;
+  rejection_reason?: string;
+  warning_count: number;
+  state?: string;
+  district?: string;
+  created_at: string;
+}
+
+export interface AuditLog {
+  id: number;
+  user_id?: number;
+  user_name?: string;
+  user_role?: string;
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  description: string;
+  before_state?: Record<string, any>;
+  after_state?: Record<string, any>;
+  ip_address?: string;
+  created_at: string;
+}
+
+export interface OfflineSyncMonitorItem {
+  id: number;
+  user_id: number;
+  user_name?: string;
+  user_role: string;
+  client_session_id?: string;
+  sync_item_type: string;
+  client_item_id?: string;
+  status: string;
+  retry_count: number;
+  error_message?: string;
+  created_offline_at?: string;
+  synced_at: string;
+  created_at: string;
+}
+
+export interface OfflineSyncStats {
+  total_sync_events: number;
+  pending_syncs: number;
+  successful_syncs: number;
+  failed_syncs: number;
+  conflicts: number;
+  last_sync_timestamp?: string;
+  records: OfflineSyncMonitorItem[];
+}
+
+export type NotificationPriority = 'INFO' | 'SUCCESS' | 'WARNING' | 'URGENT';
+
+export interface NotificationItem {
+  id: number;
+  user_id: number;
+  user_role?: string;
+  notification_type: string;
+  category: string;
+  title: string;
+  message: string;
+  related_entity_type?: string;
+  related_entity_id?: string;
+  action_url?: string;
+  link_url?: string;
+  is_read: boolean;
+  priority: NotificationPriority;
+  event_key?: string;
+  metadata_json?: Record<string, any>;
+  read_at?: string;
+  created_at: string;
+}
+
+export interface UnreadCountResponse {
+  unread_count: number;
+}
+

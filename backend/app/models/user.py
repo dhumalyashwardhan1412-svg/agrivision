@@ -16,6 +16,12 @@ class UserAccountStatus(str, enum.Enum):
     SUSPENDED = "SUSPENDED"
     BLOCKED = "BLOCKED"
 
+class UserVerificationStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    VERIFIED = "VERIFIED"
+    REJECTED = "REJECTED"
+    SUSPENDED = "SUSPENDED"
+
 class ModerationActionType(str, enum.Enum):
     WARNING = "WARNING"
     SUSPENSION = "SUSPENSION"
@@ -54,6 +60,13 @@ class User(Base):
     blocked_at = Column(DateTime, nullable=True)
     blocked_reason = Column(Text, nullable=True)
 
+    # Verification workflow fields
+    verification_status = Column(Enum(UserVerificationStatus), default=UserVerificationStatus.VERIFIED, nullable=False)
+    verified_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+    verification_notes = Column(Text, nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+
     # Multilingual preference
     preferred_language = Column(String(10), default="en", nullable=False)
 
@@ -61,6 +74,14 @@ class User(Base):
     farmer_profile = relationship("FarmerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     customer_profile = relationship("CustomerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     shopkeeper_profile = relationship("ShopkeeperProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+    @property
+    def total_farm_land(self) -> float | None:
+        return self.farmer_profile.total_land_area if self.farmer_profile else None
+
+    @property
+    def irrigation_source(self) -> str | None:
+        return self.farmer_profile.irrigation_source if self.farmer_profile else None
     
     # Generic user entities
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")

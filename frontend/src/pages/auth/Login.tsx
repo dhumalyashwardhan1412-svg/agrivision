@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { Sprout, LogIn, Key, Mail, ShieldCheck, Sparkles } from 'lucide-react';
-import { UserRole } from '../../types';
+import { Sprout, LogIn, Key, Mail } from 'lucide-react';
 
 export const Login: React.FC = () => {
-  const { login, quickDemoLogin } = useAuth();
+  const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,27 +22,15 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
-      navigate('/farmer');
+      const res = await login({ email, password });
+      const userRole = res?.role || localStorage.getItem('agrivision_role');
+      if (userRole === 'ADMIN') navigate('/admin');
+      else if (userRole === 'CUSTOMER') navigate('/customer');
+      else if (userRole === 'SHOPKEEPER') navigate('/shopkeeper');
+      else navigate('/farmer');
     } catch (err: any) {
       console.error('Login failure', err);
-      setError(err.response?.data?.detail || 'Invalid email or password. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickLogin = async (role: UserRole) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await quickDemoLogin(role);
-      if (role === 'FARMER') navigate('/farmer');
-      else if (role === 'CUSTOMER') navigate('/customer');
-      else if (role === 'SHOPKEEPER') navigate('/shopkeeper');
-      else if (role === 'ADMIN') navigate('/admin');
-    } catch (err: any) {
-      setError('Quick login failed. Ensure the backend server is running.');
+      setError(err.response?.data?.detail || t('auth.invalidCredentials', 'Invalid email or password. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -58,46 +47,11 @@ export const Login: React.FC = () => {
             </div>
           </Link>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Sign In to AgriVision
+            {t('auth.loginTitle', 'Sign In to AgriVision')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Access your agricultural intelligence workspace
+            {t('auth.loginSubtitle', 'Access your agricultural intelligence workspace')}
           </p>
-        </div>
-
-        {/* 1-Click Demo Accounts Card */}
-        <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4 text-xs space-y-2.5">
-          <div className="flex items-center justify-between font-bold text-emerald-900">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-700" /> 1-Click Instant Demo Login:
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => handleQuickLogin('FARMER')}
-              className="px-3 py-2 bg-white text-slate-800 font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100/50 shadow-2xs transition text-left"
-            >
-              🌾 Farmer <span className="block text-[10px] text-slate-500 font-normal">Rajesh Kumar</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('CUSTOMER')}
-              className="px-3 py-2 bg-white text-slate-800 font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100/50 shadow-2xs transition text-left"
-            >
-              🛒 Buyer <span className="block text-[10px] text-slate-500 font-normal">Pooja Sharma</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('SHOPKEEPER')}
-              className="px-3 py-2 bg-white text-slate-800 font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100/50 shadow-2xs transition text-left"
-            >
-              🏪 Dealer <span className="block text-[10px] text-slate-500 font-normal">Gurpreet Singh</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('ADMIN')}
-              className="px-3 py-2 bg-white text-slate-800 font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100/50 shadow-2xs transition text-left"
-            >
-              🛡️ Admin <span className="block text-[10px] text-slate-500 font-normal">Dr. Arvind Patel</span>
-            </button>
-          </div>
         </div>
 
         {/* Form Card */}
@@ -110,17 +64,17 @@ export const Login: React.FC = () => {
             )}
 
             <Input
-              label="Email Address"
+              label={t('auth.email', 'Email Address')}
               type="email"
               icon={Mail}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="farmer@agrivision.com"
+              placeholder="user@agrivision.com"
               required
             />
 
             <Input
-              label="Password"
+              label={t('auth.password', 'Password')}
               type="password"
               icon={Key}
               value={password}
@@ -137,14 +91,14 @@ export const Login: React.FC = () => {
               icon={LogIn}
               isLoading={isLoading}
             >
-              Sign In
+              {t('auth.signInButton', 'Sign In')}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-xs text-slate-500 pt-4 border-t border-slate-100">
-            Don't have an account?{' '}
+            {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
             <Link to="/register" className="font-bold text-agri-700 hover:underline">
-              Create free account
+              {t('auth.createFreeAccount', 'Create free account')}
             </Link>
           </div>
         </Card>

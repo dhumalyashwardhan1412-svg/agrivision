@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Sprout,
-  FlaskConical,
   Sparkles,
   BookOpen,
   Calculator,
@@ -17,12 +16,17 @@ import {
   X,
   User,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Landmark,
+  Handshake,
+  WifiOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSelector } from '../components/common/LanguageSelector';
 import { AgriGuideDrawer } from '../components/ai/AgriGuideDrawer';
+import { ConnectivityBadge } from '../components/common/ConnectivityBadge';
+import { NotificationBell } from '../components/common/NotificationBell';
 
 export const FarmerLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -34,7 +38,8 @@ export const FarmerLayout: React.FC = () => {
   const navItems = [
     { name: t('nav.dashboard', 'Dashboard Overview'), path: '/farmer', icon: LayoutDashboard },
     { name: t('nav.myFarms', 'My Farms & Land'), path: '/farmer/farms', icon: Sprout },
-    { name: t('nav.soilLab', 'Soil Testing Lab & AI'), path: '/farmer/soil', icon: FlaskConical },
+    { name: t('nav.govSchemes', 'Government Scheme Finder'), path: '/farmer/schemes', icon: Landmark },
+    { name: t('nav.buyerOffers', 'Buyer Offers & Negotiations'), path: '/farmer/offers', icon: Handshake },
     { name: t('nav.cropRecs', 'Crop Recommendations'), path: '/farmer/recommendations', icon: Sparkles },
     { name: t('nav.farmingPlans', 'Farming Plans (Organic/Modern)'), path: '/farmer/plans', icon: BookOpen },
     { name: t('nav.profitCalc', 'Profit & ROI Calculator'), path: '/farmer/profit', icon: Calculator },
@@ -42,6 +47,7 @@ export const FarmerLayout: React.FC = () => {
     { name: t('nav.machineryHub', 'Machinery Hub & Shops Map'), path: '/farmer/equipment', icon: MapPin },
     { name: t('nav.cropDoctor', 'Crop Doctor (Disease Scan)'), path: '/farmer/doctor', icon: Stethoscope },
     { name: t('nav.produceSales', 'My Produce Sales & Orders'), path: '/farmer/sales', icon: ShoppingBag },
+    { name: t('nav.offlineMode', 'Offline Data & Sync'), path: '/farmer/offline', icon: WifiOff },
     { name: t('nav.smartReport', 'Smart Farm PDF Report'), path: '/farmer/report', icon: FileText },
   ];
 
@@ -143,12 +149,24 @@ export const FarmerLayout: React.FC = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">
-              {t('common.appName', 'AgriVision')} {t('common.farmerPortal', 'Farmer Workspace')}
-            </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">
+                  {t('common.appName', 'AgriVision')} {t('common.farmerPortal', 'Farmer Workspace')}
+                </h2>
+                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  Version 3
+                </span>
+              </div>
+              <p className="hidden sm:block text-[11px] text-slate-400 font-medium">
+                Smart Farming. Connected Markets. Better Decisions.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
+            <ConnectivityBadge />
+            <NotificationBell />
             <LanguageSelector variant="light" />
 
             <Link

@@ -7,7 +7,7 @@ interface AuthContextType {
   token: string | null;
   role: UserRole | null;
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<any>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   quickDemoLogin: (role: UserRole) => Promise<void>;
@@ -68,6 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setToken(res.access_token);
       setRole(res.role);
       await fetchCurrentUser();
+      return res;
     } finally {
       setIsLoading(false);
     }

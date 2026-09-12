@@ -5,21 +5,23 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { farmApi } from '../../services/farmApi';
+import { useAuth } from '../../context/AuthContext';
 import { Farm } from '../../types';
 import { formatINR } from '../../utils/formatters';
 
 export const FarmManagement: React.FC = () => {
+  const { user } = useAuth();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [locationName, setLocationName] = useState('');
-  const [state, setState] = useState('Punjab');
-  const [district, setDistrict] = useState('Ludhiana');
+  const [state, setState] = useState(user?.state || 'Maharashtra');
+  const [district, setDistrict] = useState(user?.district || 'Pune');
   const [village, setVillage] = useState('');
-  const [area, setArea] = useState('3.5');
-  const [soilType, setSoilType] = useState('Loamy');
-  const [waterSource, setWaterSource] = useState('Borewell');
-  const [irrigation, setIrrigation] = useState('Drip');
+  const [area, setArea] = useState(user?.farmer_profile?.total_land_area?.toString() || user?.total_farm_land?.toString() || '5.0');
+  const [soilType, setSoilType] = useState('Alluvial');
+  const [waterSource, setWaterSource] = useState(user?.farmer_profile?.irrigation_source || user?.irrigation_source || 'Borewell');
+  const [irrigation, setIrrigation] = useState(user?.farmer_profile?.irrigation_source || user?.irrigation_source || 'Drip');
   const [budget, setBudget] = useState('75000');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -156,7 +158,7 @@ export const FarmManagement: React.FC = () => {
             label="Farm / Land Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Green Valley Farm"
+            placeholder={`e.g. ${user?.full_name ? `${user.full_name.split(' ')[0]}'s Farm` : 'My Farm'}`}
             required
           />
           <Input

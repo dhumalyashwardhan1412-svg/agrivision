@@ -20,7 +20,31 @@ def get_my_farms(
     if not current_user.farmer_profile:
         return []
     
-    return db.query(Farm).filter(Farm.farmer_id == current_user.farmer_profile.id).all()
+    farms = db.query(Farm).filter(Farm.farmer_id == current_user.farmer_profile.id).all()
+    if not farms and current_user.role == UserRole.FARMER:
+        first_name = (current_user.full_name or "My").strip().split()[0]
+        land_area = current_user.farmer_profile.total_land_area or 1.0
+        irrig = current_user.farmer_profile.irrigation_source or "Borewell"
+        loc_name = f"{current_user.district or 'Farm'}, {current_user.state or ''}".strip(", ")
+        initial_farm = Farm(
+            farmer_id=current_user.farmer_profile.id,
+            name=f"{first_name}'s Farm",
+            location_name=loc_name or f"{first_name}'s Land",
+            state=current_user.state or "Maharashtra",
+            district=current_user.district or "Pune",
+            total_area_acres=land_area,
+            water_source=irrig,
+            irrigation_system=irrig,
+            primary_soil_type="Alluvial",
+            latitude=current_user.latitude,
+            longitude=current_user.longitude
+        )
+        db.add(initial_farm)
+        db.commit()
+        db.refresh(initial_farm)
+        farms = [initial_farm]
+
+    return farms
 
 @router.post("", response_model=FarmResponse)
 def create_farm(
@@ -61,6 +85,8 @@ def get_farm_by_id(
     farm = db.query(Farm).filter(Farm.id == farm_id).first()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to access this farm")
     return farm
 
 @router.put("/{farm_id}", response_model=FarmResponse)
@@ -111,6 +137,9 @@ def add_farm_activity(
     farm = db.query(Farm).filter(Farm.id == farm_id).first()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
+
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to add activities to this farm")
 
     activity = FarmingActivity(
         farm_id=farm.id,

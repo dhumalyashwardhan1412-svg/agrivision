@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { Sprout, UserPlus, Mail, Key, User, Phone, MapPin, ShoppingBag, Store, Shield } from 'lucide-react';
-import { UserRole } from '../../types';
+import { Sprout, UserPlus, Mail, Key, User, Phone, MapPin, ShoppingBag, Store } from 'lucide-react';
+
+type PublicRegistrationRole = 'FARMER' | 'CUSTOMER' | 'SHOPKEEPER';
 
 export const Register: React.FC = () => {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
-  const [role, setRole] = useState<UserRole>('FARMER');
+  const [role, setRole] = useState<PublicRegistrationRole>('FARMER');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [state, setState] = useState('Punjab');
-  const [district, setDistrict] = useState('Ludhiana');
-  const [landArea, setLandArea] = useState('3.0');
-  const [irrigation, setIrrigation] = useState('Borewell & Drip');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
+  const [landArea, setLandArea] = useState('');
+  const [irrigation, setIrrigation] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,19 +37,18 @@ export const Register: React.FC = () => {
         full_name: fullName,
         phone_number: phone,
         role,
-        state,
-        district,
-        total_land_area: parseFloat(landArea) || 2.5,
-        irrigation_source: irrigation,
+        state: state.trim() || 'Maharashtra',
+        district: district.trim() || 'Pune',
+        total_land_area: landArea ? parseFloat(landArea) : 1.0,
+        irrigation_source: irrigation.trim() || 'Borewell',
       });
 
       if (role === 'FARMER') navigate('/farmer');
       else if (role === 'CUSTOMER') navigate('/customer');
       else if (role === 'SHOPKEEPER') navigate('/shopkeeper');
-      else if (role === 'ADMIN') navigate('/admin');
     } catch (err: any) {
       console.error('Registration failed', err);
-      setError(err.response?.data?.detail || 'Registration failed. Please check details.');
+      setError(err.response?.data?.detail || t('auth.registrationFailed', 'Registration failed. Please check details.'));
     } finally {
       setIsLoading(false);
     }
@@ -62,65 +64,55 @@ export const Register: React.FC = () => {
             </div>
           </Link>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Create Your AgriVision Account
+            {t('auth.registerTitle', 'Create Your AgriVision Account')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Select your account type to get started
+            {t('auth.registerSubtitle', 'Select your account type to get started')}
           </p>
         </div>
 
-        {/* Role Selector Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {/* Role Selector Cards - 3 Centered/Evenly Balanced Roles */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button
             type="button"
             onClick={() => setRole('FARMER')}
-            className={`p-3.5 rounded-2xl border text-center transition-all ${
+            className={`p-4 rounded-2xl border text-center transition-all ${
               role === 'FARMER'
                 ? 'bg-agri-700 text-white border-agri-700 shadow-md font-bold'
                 : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <Sprout className="w-5 h-5 mx-auto mb-1" />
-            <span className="text-xs block">Farmer</span>
+            <Sprout className="w-6 h-6 mx-auto mb-1.5" />
+            <span className="text-sm font-bold block">{t('auth.farmer', 'Farmer')}</span>
+            <span className="text-[11px] opacity-75 block mt-0.5">{t('auth.farmerSub', 'Growers & Producers')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setRole('CUSTOMER')}
-            className={`p-3.5 rounded-2xl border text-center transition-all ${
+            className={`p-4 rounded-2xl border text-center transition-all ${
               role === 'CUSTOMER'
                 ? 'bg-emerald-600 text-white border-emerald-600 shadow-md font-bold'
                 : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <ShoppingBag className="w-5 h-5 mx-auto mb-1" />
-            <span className="text-xs block">Buyer / Customer</span>
+            <ShoppingBag className="w-6 h-6 mx-auto mb-1.5" />
+            <span className="text-sm font-bold block">{t('auth.buyer', 'Buyer / Customer')}</span>
+            <span className="text-[11px] opacity-75 block mt-0.5">{t('auth.buyerSub', 'Direct Farm Produce')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setRole('SHOPKEEPER')}
-            className={`p-3.5 rounded-2xl border text-center transition-all ${
+            className={`p-4 rounded-2xl border text-center transition-all ${
               role === 'SHOPKEEPER'
                 ? 'bg-sky-600 text-white border-sky-600 shadow-md font-bold'
                 : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <Store className="w-5 h-5 mx-auto mb-1" />
-            <span className="text-xs block">Dealer / Rental</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('ADMIN')}
-            className={`p-3.5 rounded-2xl border text-center transition-all ${
-              role === 'ADMIN'
-                ? 'bg-purple-600 text-white border-purple-600 shadow-md font-bold'
-                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <Shield className="w-5 h-5 mx-auto mb-1" />
-            <span className="text-xs block">Admin</span>
+            <Store className="w-6 h-6 mx-auto mb-1.5" />
+            <span className="text-sm font-bold block">{t('auth.dealer', 'Dealer / Rental')}</span>
+            <span className="text-[11px] opacity-75 block mt-0.5">{t('auth.dealerSub', 'Inputs & Machinery')}</span>
           </button>
         </div>
 
@@ -134,7 +126,7 @@ export const Register: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Full Name"
+                label={t('auth.fullName', 'Full Name')}
                 icon={User}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -142,7 +134,7 @@ export const Register: React.FC = () => {
                 required
               />
               <Input
-                label="Phone Number"
+                label={t('auth.phone', 'Phone Number')}
                 icon={Phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -152,7 +144,7 @@ export const Register: React.FC = () => {
             </div>
 
             <Input
-              label="Email Address"
+              label={t('auth.email', 'Email Address')}
               type="email"
               icon={Mail}
               value={email}
@@ -162,7 +154,7 @@ export const Register: React.FC = () => {
             />
 
             <Input
-              label="Create Password"
+              label={t('auth.createPassword', 'Create Password')}
               type="password"
               icon={Key}
               value={password}
@@ -173,17 +165,19 @@ export const Register: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="State"
+                label={t('auth.state', 'State')}
                 icon={MapPin}
                 value={state}
                 onChange={(e) => setState(e.target.value)}
+                placeholder="e.g. Maharashtra"
                 required
               />
               <Input
-                label="District"
+                label={t('auth.district', 'District')}
                 icon={MapPin}
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
+                placeholder="e.g. Pune"
                 required
               />
             </div>
@@ -191,18 +185,20 @@ export const Register: React.FC = () => {
             {role === 'FARMER' && (
               <div className="grid grid-cols-2 gap-4 p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl">
                 <Input
-                  label="Total Farm Land (Acres)"
+                  label={t('auth.farmLand', 'Total Farm Land (Acres)')}
                   type="number"
-                  step="0.5"
+                  step="0.1"
+                  min="0.1"
                   value={landArea}
                   onChange={(e) => setLandArea(e.target.value)}
+                  placeholder="e.g. 5.0"
                   required
                 />
                 <Input
-                  label="Primary Irrigation Source"
+                  label={t('auth.irrigation', 'Primary Irrigation Source')}
                   value={irrigation}
                   onChange={(e) => setIrrigation(e.target.value)}
-                  placeholder="e.g. Borewell / Canal"
+                  placeholder={t('auth.irrigationPlaceholder', 'e.g. Borewell / Canal / Drip')}
                 />
               </div>
             )}
@@ -215,14 +211,14 @@ export const Register: React.FC = () => {
               icon={UserPlus}
               isLoading={isLoading}
             >
-              Complete Registration ({role})
+              {t('auth.completeRegistration', 'Complete Registration')} ({role === 'FARMER' ? t('auth.farmer', 'Farmer') : role === 'CUSTOMER' ? t('auth.buyer', 'Buyer') : t('auth.dealer', 'Dealer')})
             </Button>
           </form>
 
           <div className="mt-6 text-center text-xs text-slate-500 pt-4 border-t border-slate-100">
-            Already have an account?{' '}
+            {t('auth.alreadyHaveAccount', 'Already have an account?')}{' '}
             <Link to="/login" className="font-bold text-agri-700 hover:underline">
-              Sign In
+              {t('common.signIn', 'Sign In')}
             </Link>
           </div>
         </Card>

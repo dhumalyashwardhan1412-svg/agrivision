@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database.session import get_db
 from app.core.dependencies import get_current_user
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.farm import Farm
 from app.models.crop import CropRecommendation
 from app.schemas.crop import CropRecommendationResponse
@@ -20,6 +20,9 @@ def get_or_calculate_crop_recommendations(
     farm = db.query(Farm).filter(Farm.id == farm_id).first()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
+
+    if current_user.role != UserRole.ADMIN and (not current_user.farmer_profile or farm.farmer_id != current_user.farmer_profile.id):
+        raise HTTPException(status_code=403, detail="Not authorized to access recommendations for this farm")
 
     # Generate fresh recommendations using hybrid scoring engine
     recs = recommendation_service.generate_recommendations(db, farm_id)

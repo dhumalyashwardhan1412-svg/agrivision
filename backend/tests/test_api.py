@@ -242,6 +242,204 @@ def test_user_moderation_system():
     assert hist_res.status_code == 200
     assert len(hist_res.json()) >= 3
 
+def test_registration_roles_and_admin_blocking():
+    import uuid
+    # 1. Admin registration attempt with 'ADMIN' must fail with 403 Forbidden
+    admin_reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"hacker_{uuid.uuid4().hex[:6]}@test.com",
+            "password": "Password@123",
+            "full_name": "Rogue Admin",
+            "role": "ADMIN"
+        }
+    )
+    assert admin_reg.status_code == 403
+    assert admin_reg.json()["detail"] == "Admin accounts cannot be created through public registration."
+
+    # 2. Admin registration attempt with lowercase 'admin' must also fail with 403
+    admin_reg_lower = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"hacker_{uuid.uuid4().hex[:6]}@test.com",
+            "password": "Password@123",
+            "full_name": "Rogue Admin 2",
+            "role": "admin"
+        }
+    )
+    assert admin_reg_lower.status_code == 403
+    assert admin_reg_lower.json()["detail"] == "Admin accounts cannot be created through public registration."
+
+    # 3. Farmer registration must succeed
+    farmer_reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"farmer_{uuid.uuid4().hex[:6]}@test.com",
+            "password": "Password@123",
+            "full_name": "Test Farmer",
+            "role": "FARMER",
+            "total_land_area": 4.0
+        }
+    )
+    assert farmer_reg.status_code == 200
+    assert farmer_reg.json()["role"] == "FARMER"
+
+    # 4. Customer / Buyer registration must succeed
+    cust_reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"buyer_{uuid.uuid4().hex[:6]}@test.com",
+            "password": "Password@123",
+            "full_name": "Test Buyer",
+            "role": "CUSTOMER"
+        }
+    )
+    assert cust_reg.status_code == 200
+    assert cust_reg.json()["role"] == "CUSTOMER"
+
+    # 5. Shopkeeper / Dealer registration must succeed
+    shop_reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"dealer_{uuid.uuid4().hex[:6]}@test.com",
+            "password": "Password@123",
+            "full_name": "Test Dealer",
+            "role": "SHOPKEEPER"
+        }
+    )
+    assert shop_reg.status_code == 200
+    assert shop_reg.json()["role"] == "SHOPKEEPER"
+
+    # 6. Existing Admin login continues to work
+    admin_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@agrivision.com", "password": "Admin@123"}
+    )
+    assert admin_login.status_code == 200
+    assert admin_login.json()["role"] == "ADMIN"
+
+    # 7. Existing Farmer login continues to work
+    farmer_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "farmer@agrivision.com", "password": "Farmer@123"}
+    )
+    assert farmer_login.status_code == 200
+    assert farmer_login.json()["role"] == "FARMER"
+
+    # 8. Existing Buyer login continues to work
+    buyer_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "customer@agrivision.com", "password": "Customer@123"}
+    )
+    assert buyer_login.status_code == 200
+    assert buyer_login.json()["role"] == "CUSTOMER"
+
+    # 9. Existing Dealer login continues to work
+    dealer_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "shopkeeper@agrivision.com", "password": "Shop@123"}
+    )
+    assert dealer_login.status_code == 200
+    assert dealer_login.json()["role"] == "SHOPKEEPER"
+
+def test_farmer_registration_data_synchronization_and_isolation():
+    import uuid
+    # 1. Register Farmer A (Pune, Maharashtra, 5 Acres, Borewell)
+    email_a = f"farmer_pune_{uuid.uuid4().hex[:6]}@test.com"
+    reg_a = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": email_a,
+            "password": "Password@123",
+            "full_name": "Test Farmer",
+            "phone_number": "+91 98220 12345",
+            "role": "FARMER",
+            "state": "Maharashtra",
+            "district": "Pune",
+            "total_land_area": 5.0,
+            "irrigation_source": "Borewell"
+        }
+    )
+    assert reg_a.status_code == 200
+    token_a = reg_a.json()["access_token"]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    # Verify Farmer A's /auth/me
+    me_a = client.get("/api/v1/auth/me", headers=headers_a)
+    assert me_a.status_code == 200
+    me_data_a = me_a.json()
+    assert me_data_a["full_name"] == "Test Farmer"
+    assert me_data_a["state"] == "Maharashtra"
+    assert me_data_a["district"] == "Pune"
+    assert me_data_a["total_farm_land"] == 5.0
+    assert me_data_a["irrigation_source"] == "Borewell"
+
+    # Verify Farmer A's farms
+    farms_a = client.get("/api/v1/farms", headers=headers_a)
+    assert farms_a.status_code == 200
+    farms_list_a = farms_a.json()
+    assert len(farms_list_a) >= 1
+    farm_a = farms_list_a[0]
+    assert farm_a["name"] == "Test's Farm"
+    assert farm_a["state"] == "Maharashtra"
+    assert farm_a["district"] == "Pune"
+    assert farm_a["total_area_acres"] == 5.0
+    assert farm_a["irrigation_system"] == "Borewell"
+    assert farm_a["name"] != "Green Valley Eco Farm"
+    assert farm_a["district"] != "Ludhiana"
+
+    # 2. Register Farmer B (Surat, Gujarat, 12.5 Acres, Canal)
+    email_b = f"farmer_surat_{uuid.uuid4().hex[:6]}@test.com"
+    reg_b = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": email_b,
+            "password": "Password@123",
+            "full_name": "Second Farmer",
+            "phone_number": "+91 98220 67890",
+            "role": "FARMER",
+            "state": "Gujarat",
+            "district": "Surat",
+            "total_land_area": 12.5,
+            "irrigation_source": "Canal"
+        }
+    )
+    assert reg_b.status_code == 200
+    token_b = reg_b.json()["access_token"]
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    # Verify Farmer B's /auth/me
+    me_b = client.get("/api/v1/auth/me", headers=headers_b)
+    assert me_b.status_code == 200
+    me_data_b = me_b.json()
+    assert me_data_b["full_name"] == "Second Farmer"
+    assert me_data_b["state"] == "Gujarat"
+    assert me_data_b["district"] == "Surat"
+    assert me_data_b["total_farm_land"] == 12.5
+    assert me_data_b["irrigation_source"] == "Canal"
+
+    # Verify Farmer B's farms
+    farms_b = client.get("/api/v1/farms", headers=headers_b)
+    assert farms_b.status_code == 200
+    farms_list_b = farms_b.json()
+    assert len(farms_list_b) >= 1
+    farm_b = farms_list_b[0]
+    assert farm_b["name"] == "Second's Farm"
+    assert farm_b["state"] == "Gujarat"
+    assert farm_b["district"] == "Surat"
+    assert farm_b["total_area_acres"] == 12.5
+    assert farm_b["irrigation_system"] == "Canal"
+
+    # 3. Verify Multi-Tenant Isolation (Farmer A cannot access Farmer B's farm)
+    denied_res = client.get(f"/api/v1/farms/{farm_b['id']}", headers=headers_a)
+    assert denied_res.status_code == 403
+
+    denied_rec = client.get(f"/api/v1/recommendations/farm/{farm_b['id']}", headers=headers_a)
+    assert denied_rec.status_code == 403
+
+    denied_soil = client.get(f"/api/v1/soil/records/{farm_b['id']}", headers=headers_a)
+    assert denied_soil.status_code == 403
+
 def test_pdf_report_generation():
     res = client.get("/api/v1/reports/farm-pdf/1")
     assert res.status_code == 200
@@ -251,6 +449,8 @@ def test_pdf_report_generation():
 if __name__ == "__main__":
     test_health()
     test_login_and_roles()
+    test_registration_roles_and_admin_blocking()
+    test_farmer_registration_data_synchronization_and_isolation()
     test_user_preferred_language()
     test_crops_and_recommendations()
     test_profit_calculator()
@@ -260,4 +460,4 @@ if __name__ == "__main__":
     test_marketplace_and_orders()
     test_user_moderation_system()
     test_pdf_report_generation()
-    print("All backend unit and multilingual feature tests passed successfully!")
+    print("All backend unit, registration security, and multilingual feature tests passed successfully!")

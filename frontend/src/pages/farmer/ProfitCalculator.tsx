@@ -36,6 +36,8 @@ import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { CostPieChart } from '../../components/charts/CostPieChart';
 import { cropApi } from '../../services/cropApi';
+import { farmApi } from '../../services/farmApi';
+import { useAuth } from '../../context/AuthContext';
 import {
   ProfitCalculationResponse,
   Crop,
@@ -45,15 +47,18 @@ import {
 import { formatINR, formatNumber } from '../../utils/formatters';
 
 export const ProfitCalculator: React.FC = () => {
+  const { user } = useAuth();
   const location = useLocation();
   const stateData = location.state as { cropName?: string } | undefined;
 
   // Active Tab: 'standard' | 'what-if'
   const [activeTab, setActiveTab] = useState<'standard' | 'what-if'>('standard');
 
+  const defaultArea = user?.farmer_profile?.total_land_area ?? user?.total_farm_land ?? 2.0;
+
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedCrop, setSelectedCrop] = useState<string>(stateData?.cropName || 'Tomato');
-  const [area, setArea] = useState<number>(2.0);
+  const [area, setArea] = useState<number>(defaultArea);
 
   // Standard Calculator custom overrides
   const [seedCost, setSeedCost] = useState<string>('');
@@ -112,16 +117,30 @@ export const ProfitCalculator: React.FC = () => {
   const [isWhatIfLoading, setIsWhatIfLoading] = useState(false);
 
   useEffect(() => {
-    const fetchCrops = async () => {
+    const fetchFarmsAndCrops = async () => {
       try {
-        const data = await cropApi.getCrops();
+        const [farmList, data] = await Promise.all([
+          farmApi.getMyFarms().catch(() => []),
+          cropApi.getCrops(),
+        ]);
         setCrops(data);
+        if (farmList.length > 0 && farmList[0].total_area_acres) {
+          const farmAcres = farmList[0].total_area_acres;
+          setArea(farmAcres);
+          setCurrentArea(farmAcres);
+          setWhatIfArea(farmAcres);
+        } else if (user?.farmer_profile?.total_land_area) {
+          const farmAcres = user.farmer_profile.total_land_area;
+          setArea(farmAcres);
+          setCurrentArea(farmAcres);
+          setWhatIfArea(farmAcres);
+        }
       } catch (err) {
         console.error(err);
       }
     };
-    fetchCrops();
-  }, []);
+    fetchFarmsAndCrops();
+  }, [user]);
 
   // Standard calculation
   const runCalculation = async () => {

@@ -39,6 +39,7 @@ class ShopProduct(Base):
     price = Column(Float, nullable=False)
     unit = Column(String(50), default="Pack") # kg, Litre, 50kg Bag, Unit, Pack
     stock_quantity = Column(Integer, default=100)
+    low_stock_threshold = Column(Integer, default=10, nullable=False)
     is_organic = Column(Boolean, default=False)
     description = Column(Text, nullable=True)
     image_url = Column(String(500), nullable=True)

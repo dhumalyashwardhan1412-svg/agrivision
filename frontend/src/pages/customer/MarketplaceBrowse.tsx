@@ -9,8 +9,10 @@ import { ListingCard } from '../../components/marketplace/ListingCard';
 import { marketplaceApi } from '../../services/marketplaceApi';
 import { CropListing } from '../../types';
 import { formatINR } from '../../utils/formatters';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const MarketplaceBrowse: React.FC = () => {
+  const { t } = useLanguage();
   const [listings, setListings] = useState<CropListing[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('ALL');
@@ -101,10 +103,10 @@ export const MarketplaceBrowse: React.FC = () => {
         <div>
           <Badge variant="green" size="sm">0% MIDDLEMAN COMMISSION</Badge>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2">
-            Direct Farm Produce Marketplace
+            {t('marketplace.title', 'Direct Farm Produce Marketplace')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Buy grade-A farm-fresh vegetables, grains, pulses, and fruits directly from verified farmers.
+            {t('marketplace.subtitle', 'Buy grade-A farm-fresh vegetables, grains, pulses, and fruits directly from verified farmers.')}
           </p>
         </div>
       </div>
@@ -116,22 +118,28 @@ export const MarketplaceBrowse: React.FC = () => {
             icon={Search}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search crop, tomato, wheat, city..."
+            placeholder={t('marketplace.searchPlaceholder', 'Search fresh crops, vegetables, grains...')}
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          {['ALL', 'Vegetables', 'Grains', 'Fruits', 'Pulses'].map((cat) => (
+          {[
+            { id: 'ALL', label: t('common.all', 'All') },
+            { id: 'Vegetables', label: t('marketplace.freshVegetables', 'Vegetables') },
+            { id: 'Grains', label: t('marketplace.grainsPulses', 'Grains') },
+            { id: 'Fruits', label: t('marketplace.fruits', 'Fruits') },
+            { id: 'Pulses', label: t('marketplace.oilseeds', 'Pulses') },
+          ].map((cat) => (
             <button
-              key={cat}
-              onClick={() => setCategory(cat)}
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition ${
-                category === cat
+                category === cat.id
                   ? 'bg-emerald-700 text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
 
@@ -143,7 +151,7 @@ export const MarketplaceBrowse: React.FC = () => {
                 : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
             }`}
           >
-            🌱 Organic Only
+            🌱 {t('recommendations.organicReady', 'Organic Only')}
           </button>
         </div>
       </div>

@@ -16,40 +16,63 @@ import { Register } from '../pages/auth/Register';
 import { MarketplaceBrowse } from '../pages/customer/MarketplaceBrowse';
 import { MarketIntelligence } from '../pages/farmer/MarketIntelligence';
 import { CropDoctor } from '../pages/farmer/CropDoctor';
-import { AgriVision3DExperience } from '../components/farm3d/AgriVision3DExperience';
 
 // Farmer Pages
 import { FarmerDashboard } from '../pages/farmer/FarmerDashboard';
 import { FarmManagement } from '../pages/farmer/FarmManagement';
-import { SoilTesting } from '../pages/farmer/SoilTesting';
 import { CropRecommendations } from '../pages/farmer/CropRecommendations';
 import { FarmingPlanDetail } from '../pages/farmer/FarmingPlanDetail';
 import { ProfitCalculator } from '../pages/farmer/ProfitCalculator';
 import { EquipmentAndShops } from '../pages/farmer/EquipmentAndShops';
 import { FarmerSales } from '../pages/farmer/FarmerSales';
 import { FarmReportDownload } from '../pages/farmer/FarmReportDownload';
+import { GovernmentSchemes } from '../pages/farmer/GovernmentSchemes';
+import { FarmerBuyerOffers } from '../pages/farmer/BuyerOffers';
+import { OfflineData } from '../pages/farmer/OfflineData';
 
 // Customer Pages
 import { CustomerDashboard } from '../pages/customer/CustomerDashboard';
 import { CustomerOrders } from '../pages/customer/CustomerOrders';
+import { PostRequirement } from '../pages/customer/PostRequirement';
+import { MyRequirements } from '../pages/customer/MyRequirements';
+import { CustomerBuyerOffers } from '../pages/customer/BuyerOffers';
 
 // Shopkeeper Pages
 import { ShopkeeperDashboard } from '../pages/shopkeeper/ShopkeeperDashboard';
 import { ProductInventory } from '../pages/shopkeeper/ProductInventory';
 import { EquipmentManager } from '../pages/shopkeeper/EquipmentManager';
 import { ShopOrders } from '../pages/shopkeeper/ShopOrders';
+import { OffersDiscounts } from '../pages/shopkeeper/OffersDiscounts';
+import { DemandInsights } from '../pages/shopkeeper/DemandInsights';
+import { LowStockAlerts } from '../pages/shopkeeper/LowStockAlerts';
+import { CustomerReviews } from '../pages/shopkeeper/CustomerReviews';
 
 // Admin Pages
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { UserManagement } from '../pages/admin/UserManagement';
 import { MarketPriceModeration } from '../pages/admin/MarketPriceModeration';
+import { VerificationManager } from '../pages/admin/VerificationManager';
+import { SchemeManager } from '../pages/admin/SchemeManager';
+import { AuditLogs } from '../pages/admin/AuditLogs';
+import { OfflineSyncMonitor } from '../pages/admin/OfflineSyncMonitor';
+
+import { useAuth } from '../context/AuthContext';
+import { NotificationsPage } from '../pages/common/NotificationsPage';
+
+const RoleNotificationsRedirect: React.FC = () => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  const role = user.role?.toLowerCase();
+  if (role === 'farmer') return <Navigate to="/farmer/notifications" replace />;
+  if (role === 'customer') return <Navigate to="/customer/notifications" replace />;
+  if (role === 'shopkeeper') return <Navigate to="/shopkeeper/notifications" replace />;
+  if (role === 'admin') return <Navigate to="/admin/notifications" replace />;
+  return <Navigate to="/" replace />;
+};
 
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* 3D Smart Farm Digital Twin Experience (Fullscreen) */}
-      <Route path="/3d" element={<AgriVision3DExperience />} />
-
       {/* Public Pages wrapped in MainLayout */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<LandingPage />} />
@@ -73,7 +96,9 @@ export const AppRoutes: React.FC = () => {
       >
         <Route index element={<FarmerDashboard />} />
         <Route path="farms" element={<FarmManagement />} />
-        <Route path="soil" element={<SoilTesting />} />
+        <Route path="schemes" element={<GovernmentSchemes />} />
+        <Route path="offers" element={<FarmerBuyerOffers />} />
+        <Route path="offline" element={<OfflineData />} />
         <Route path="recommendations" element={<CropRecommendations />} />
         <Route path="plans" element={<FarmingPlanDetail />} />
         <Route path="profit" element={<ProfitCalculator />} />
@@ -82,6 +107,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="doctor" element={<CropDoctor />} />
         <Route path="sales" element={<FarmerSales />} />
         <Route path="report" element={<FarmReportDownload />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Route>
 
       {/* Customer Protected Routes */}
@@ -96,7 +122,11 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<CustomerDashboard />} />
+        <Route path="post-requirement" element={<PostRequirement />} />
+        <Route path="requirements" element={<MyRequirements />} />
+        <Route path="offers" element={<CustomerBuyerOffers />} />
         <Route path="orders" element={<CustomerOrders />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Route>
 
       {/* Shopkeeper Protected Routes */}
@@ -112,8 +142,13 @@ export const AppRoutes: React.FC = () => {
       >
         <Route index element={<ShopkeeperDashboard />} />
         <Route path="products" element={<ProductInventory />} />
+        <Route path="discounts" element={<OffersDiscounts />} />
+        <Route path="demand" element={<DemandInsights />} />
+        <Route path="low-stock" element={<LowStockAlerts />} />
+        <Route path="reviews" element={<CustomerReviews />} />
         <Route path="equipment" element={<EquipmentManager />} />
         <Route path="orders" element={<ShopOrders />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Route>
 
       {/* Admin Protected Routes */}
@@ -128,9 +163,24 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="verifications" element={<VerificationManager />} />
+        <Route path="schemes" element={<SchemeManager />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
+        <Route path="offline-sync" element={<OfflineSyncMonitor />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="markets" element={<MarketPriceModeration />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Route>
+
+      {/* Universal Notifications Redirect */}
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <RoleNotificationsRedirect />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Fallback to Home */}
       <Route path="*" element={<Navigate to="/" replace />} />
