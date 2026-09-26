@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.database.database import engine, Base
 from app.database.migrations import run_safe_schema_migrations
 
-# Important: registers all SQLAlchemy models
+# Important: register all SQLAlchemy models
 import app.models
 
 from app.utils.seed_data import seed_database
@@ -76,18 +76,30 @@ async def lifespan(app: FastAPI):
         print(f"Migration note: {e}")
 
     # -----------------------------------------------------
-    # Seed default / required database data
+    # Seed database
     # -----------------------------------------------------
     #
     # Local development:
-    # SEED_DATABASE defaults to true.
+    # Defaults to true.
     #
-    # Vercel production:
-    # Set SEED_DATABASE=false
+    # Vercel:
+    # Defaults to false.
     #
 
+    default_seed_value = (
+        "false"
+        if os.getenv("VERCEL")
+        else "true"
+    )
+
     seed_enabled = (
-        os.getenv("SEED_DATABASE", "true").strip().lower() == "true"
+        os.getenv(
+            "SEED_DATABASE",
+            default_seed_value,
+        )
+        .strip()
+        .lower()
+        == "true"
     )
 
     if seed_enabled:
@@ -126,7 +138,6 @@ app = FastAPI(
 # CORS CONFIGURATION
 # =========================================================
 
-# Local frontend development URLs
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -138,15 +149,17 @@ allowed_origins = [
 
 
 # ---------------------------------------------------------
-# Production frontend URL
+# Optional production frontend origin
 # ---------------------------------------------------------
 #
 # Example:
-#
-# FRONTEND_ORIGIN=https://agrivision.vercel.app
+# FRONTEND_ORIGIN=https://agrivision-rouge.vercel.app
 #
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
+frontend_origin = os.getenv(
+    "FRONTEND_ORIGIN",
+    "",
+).strip()
 
 if frontend_origin:
     frontend_origin = frontend_origin.rstrip("/")
@@ -160,11 +173,13 @@ if frontend_origin:
 # ---------------------------------------------------------
 #
 # Example:
-#
 # FRONTEND_ORIGINS=https://site1.com,https://site2.com
 #
 
-extra_origins = os.getenv("FRONTEND_ORIGINS", "").strip()
+extra_origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "",
+).strip()
 
 if extra_origins:
     for origin in extra_origins.split(","):
@@ -172,7 +187,9 @@ if extra_origins:
 
         if (
             origin
-            and origin.startswith(("http://", "https://"))
+            and origin.startswith(
+                ("http://", "https://")
+            )
             and origin not in allowed_origins
         ):
             allowed_origins.append(origin)
@@ -186,17 +203,9 @@ for origin in allowed_origins:
 
 app.add_middleware(
     CORSMiddleware,
-
-    # Exact frontend domains that may access this API
     allow_origins=allowed_origins,
-
-    # Required if authentication/cookies/authorization are used
     allow_credentials=True,
-
-    # Allow GET, POST, PUT, PATCH, DELETE, OPTIONS, etc.
     allow_methods=["*"],
-
-    # Allow Authorization and other request headers
     allow_headers=["*"],
 )
 
@@ -205,16 +214,24 @@ app.add_middleware(
 # STATIC / UPLOADED FILES
 # =========================================================
 
-os.makedirs(
-    settings.UPLOAD_DIR,
-    exist_ok=True,
-)
+# Local development uses the normal uploads folder.
+#
+# Vercel production does NOT create or mount this directory.
+# Uploaded crop/soil images will use Vercel Blob instead.
 
-app.mount(
-    "/uploads",
-    StaticFiles(directory=settings.UPLOAD_DIR),
-    name="uploads",
-)
+if not os.getenv("VERCEL"):
+    os.makedirs(
+        settings.UPLOAD_DIR,
+        exist_ok=True,
+    )
+
+    app.mount(
+        "/uploads",
+        StaticFiles(
+            directory=settings.UPLOAD_DIR
+        ),
+        name="uploads",
+    )
 
 
 # =========================================================
