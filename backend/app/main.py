@@ -53,7 +53,6 @@ from app.routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     print("Starting AgriVision Version 3 Backend...")
 
     # -----------------------------------------------------
@@ -79,12 +78,26 @@ async def lifespan(app: FastAPI):
     # -----------------------------------------------------
     # Seed default / required database data
     # -----------------------------------------------------
+    #
+    # Local development:
+    # SEED_DATABASE defaults to true.
+    #
+    # Vercel production:
+    # Set SEED_DATABASE=false
+    #
 
-    try:
-        seed_database()
-        print("Database initialization completed.")
-    except Exception as e:
-        print(f"Database initialization note: {e}")
+    seed_enabled = (
+        os.getenv("SEED_DATABASE", "true").strip().lower() == "true"
+    )
+
+    if seed_enabled:
+        try:
+            seed_database()
+            print("Database initialization completed.")
+        except Exception as e:
+            print(f"Database initialization note: {e}")
+    else:
+        print("Database seeding skipped.")
 
     print("AgriVision Version 3 Backend started successfully.")
 
@@ -128,9 +141,9 @@ allowed_origins = [
 # Production frontend URL
 # ---------------------------------------------------------
 #
-# Render environment variable example:
+# Example:
 #
-# FRONTEND_ORIGIN=https://agrivision-1.onrender.com
+# FRONTEND_ORIGIN=https://agrivision.vercel.app
 #
 
 frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
@@ -155,7 +168,6 @@ extra_origins = os.getenv("FRONTEND_ORIGINS", "").strip()
 
 if extra_origins:
     for origin in extra_origins.split(","):
-
         origin = origin.strip().rstrip("/")
 
         if (
@@ -200,9 +212,7 @@ os.makedirs(
 
 app.mount(
     "/uploads",
-    StaticFiles(
-        directory=settings.UPLOAD_DIR
-    ),
+    StaticFiles(directory=settings.UPLOAD_DIR),
     name="uploads",
 )
 
@@ -418,18 +428,12 @@ app.include_router(
 # SYSTEM ROUTES
 # =========================================================
 
-
-# ---------------------------------------------------------
-# Backend root
-# ---------------------------------------------------------
-
 @app.api_route(
     "/",
     methods=["GET", "HEAD"],
     include_in_schema=False,
 )
 async def root():
-
     return {
         "message": "AgriVision Version 3 Backend",
         "status": "running",
@@ -440,17 +444,12 @@ async def root():
     }
 
 
-# ---------------------------------------------------------
-# Health Check
-# ---------------------------------------------------------
-
 @app.api_route(
     "/health",
     methods=["GET", "HEAD"],
     tags=["System"],
 )
 async def health_check():
-
     return {
         "status": "healthy",
         "service": "AgriVision Smart Agriculture Backend",
@@ -459,16 +458,11 @@ async def health_check():
     }
 
 
-# ---------------------------------------------------------
-# API Information
-# ---------------------------------------------------------
-
 @app.get(
     "/api-info",
     tags=["System"],
 )
 async def api_info():
-
     return {
         "message": "AgriVision Version 3 API",
         "status": "running",
@@ -485,7 +479,6 @@ async def api_info():
 # =========================================================
 
 if __name__ == "__main__":
-
     import uvicorn
 
     port = int(
