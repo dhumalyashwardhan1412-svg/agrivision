@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
+import { AnimatedCounter } from '../common/MotionWrapper';
 
 interface StatCardProps {
   title: string;
@@ -32,20 +33,22 @@ export const StatCard: React.FC<StatCardProps> = ({
   };
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200">
+    <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm dashboard-card-hover transition-all duration-200 group">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</span>
-        <div className={clsx('p-2.5 rounded-xl border', colorStyles[color])}>
-          <Icon className="w-5 h-5" />
+        <div className={clsx('p-2.5 rounded-xl border transition-transform duration-200 group-hover:scale-105', colorStyles[color])}>
+          <Icon className="w-5 h-5 transition-transform duration-200 group-hover:rotate-3" />
         </div>
       </div>
 
       <div className="mt-4 flex items-baseline justify-between">
-        <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{value}</span>
+        <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <AnimatedCounter value={value} />
+        </span>
         {trend && (
           <span
             className={clsx(
-              'inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-md',
+              'inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-md transition-transform duration-200 group-hover:scale-105',
               trend.isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
             )}
           >

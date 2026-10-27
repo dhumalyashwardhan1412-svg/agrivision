@@ -22,20 +22,21 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   const displayCondition = condition || t('weather.partlySunny', 'Partly Sunny / Optimal Sowing');
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-agri-950 to-slate-900 text-white rounded-3xl p-6 shadow-lg border border-agri-800/40 relative overflow-hidden">
+    <div className="bg-gradient-to-br from-slate-900 via-agri-950 to-slate-900 text-white rounded-3xl p-6 shadow-lg border border-agri-800/40 relative overflow-hidden dashboard-card-hover">
       {/* Background glow decoration */}
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-agri-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-agri-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-subtle" />
 
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold tracking-wider uppercase">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 status-dot-pulse" />
             <Compass className="w-3.5 h-3.5" />
             <span>{t('weather.liveTitle', 'Farm Agro-Weather Live')}</span>
           </div>
           <h4 className="text-lg font-bold text-white mt-1">{locationName}</h4>
           <p className="text-xs text-slate-300 mt-0.5">{displayCondition}</p>
         </div>
-        <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
+        <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 animate-float-gentle">
           <CloudSun className="w-8 h-8 text-amber-400" />
         </div>
       </div>

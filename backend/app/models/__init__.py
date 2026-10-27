@@ -2,7 +2,8 @@ from app.database.database import Base
 from app.models.user import (
     User, UserRole, UserAccountStatus, UserVerificationStatus, ModerationAction,
     ModerationActionType, UserReport, ReportStatus,
-    FarmerProfile, CustomerProfile, ShopkeeperProfile
+    FarmerProfile, CustomerProfile, ShopkeeperProfile,
+    PasswordResetToken, PhoneOTPVerification
 )
 from app.models.farm import Farm, LandParcel, FarmingActivity
 from app.models.soil import SoilTest, SoilSourceType
@@ -77,5 +78,7 @@ __all__ = [
     "DiscountType",
     "AuditLog",
     "OfflineSyncRecord",
-    "SyncStatus"
+    "SyncStatus",
+    "PasswordResetToken",
+    "PhoneOTPVerification"
 ]

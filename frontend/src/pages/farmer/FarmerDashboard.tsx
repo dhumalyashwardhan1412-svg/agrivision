@@ -20,6 +20,7 @@ import { WeatherWidget } from '../../components/dashboard/WeatherWidget';
 import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { MotionPage, MotionGrid, MotionCard, MotionItem } from '../../components/common/MotionWrapper';
 import { farmApi } from '../../services/farmApi';
 import { soilApi } from '../../services/soilApi';
 import { cropApi } from '../../services/cropApi';
@@ -129,13 +130,14 @@ export const FarmerDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <MotionPage className="space-y-6">
       {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-agri-800 to-emerald-700 text-white rounded-3xl p-6 sm:p-8 shadow-lg">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-agri-800 to-emerald-700 text-white rounded-3xl p-6 sm:p-8 shadow-lg dashboard-card-hover">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white">
-              🌾 {t('farmer.activeFarm', 'ACTIVE FARM')}
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white flex items-center gap-1.5 backdrop-blur-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-300 status-dot-pulse" />
+              <span>🌾 {t('farmer.activeFarm', 'ACTIVE FARM')}</span>
             </span>
             <span className="text-xs text-emerald-200">
               {displayLocation}
@@ -156,55 +158,63 @@ export const FarmerDashboard: React.FC = () => {
 
         <div className="flex items-center gap-2.5">
           <Link to="/farmer/report">
-            <Button size="sm" className="bg-white text-agri-900 hover:bg-slate-100 font-bold" icon={FileText}>
+            <Button size="sm" className="bg-white text-agri-900 hover:bg-slate-100 font-bold active:scale-95 transition-all" icon={FileText}>
               {t('farmer.downloadPdf', 'Download PDF Report')}
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title={t('farmer.totalArea', 'Total Farm Area')}
-          value={`${displayAcreage} ${t('common.acres', 'Acres')}`}
-          subtitle="100% precision mapped"
-          icon={Sprout}
-          color="green"
-        />
-        <StatCard
-          title={t('farmer.soilGrade', 'Soil Health Grade')}
-          value={latestSoil?.health_grade || 'Grade A (Prime)'}
-          subtitle={latestSoil?.npk_status?.slice(0, 30) || 'N-P-K Well Balanced'}
-          icon={FlaskConical}
-          color="blue"
-        />
-        <StatCard
-          title={t('farmer.topRecommendation', 'Top AI Recommendation')}
-          value={topRec?.crop?.name || 'Tomato (Hybrid)'}
-          subtitle={`Suitability: ${topRec?.overall_suitability_score || 92.5}%`}
-          icon={Sparkles}
-          color="amber"
-        />
-        <StatCard
-          title={t('farmer.estNetProfit', 'Est. Net Profit (Season)')}
-          value={topRec ? formatINR(topRec.estimated_profit_inr) : formatINR(Math.round(45000 * Number(displayAcreage)))}
-          subtitle={`Projected ROI: ${topRec?.roi_percentage || 115}%`}
-          icon={TrendingUp}
-          color="purple"
-        />
-      </div>
+      {/* KPI Stats Grid with Staggered Entrance */}
+      <MotionGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" staggerDelay={0.07}>
+        <MotionCard hoverEffect={false}>
+          <StatCard
+            title={t('farmer.totalArea', 'Total Farm Area')}
+            value={`${displayAcreage} ${t('common.acres', 'Acres')}`}
+            subtitle="100% precision mapped"
+            icon={Sprout}
+            color="green"
+          />
+        </MotionCard>
+        <MotionCard hoverEffect={false}>
+          <StatCard
+            title={t('farmer.soilGrade', 'Soil Health Grade')}
+            value={latestSoil?.health_grade || 'Grade A (Prime)'}
+            subtitle={latestSoil?.npk_status?.slice(0, 30) || 'N-P-K Well Balanced'}
+            icon={FlaskConical}
+            color="blue"
+          />
+        </MotionCard>
+        <MotionCard hoverEffect={false}>
+          <StatCard
+            title={t('farmer.topRecommendation', 'Top AI Recommendation')}
+            value={topRec?.crop?.name || 'Tomato (Hybrid)'}
+            subtitle={`Suitability: ${topRec?.overall_suitability_score || 92.5}%`}
+            icon={Sparkles}
+            color="amber"
+          />
+        </MotionCard>
+        <MotionCard hoverEffect={false}>
+          <StatCard
+            title={t('farmer.estNetProfit', 'Est. Net Profit (Season)')}
+            value={topRec ? formatINR(topRec.estimated_profit_inr) : formatINR(Math.round(45000 * Number(displayAcreage)))}
+            subtitle={`Projected ROI: ${topRec?.roi_percentage || 115}%`}
+            icon={TrendingUp}
+            color="purple"
+          />
+        </MotionCard>
+      </MotionGrid>
 
       {/* Main Grid: Weather + Crop Advisory */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Weather Card */}
-        <div className="lg:col-span-1">
+        <MotionItem className="lg:col-span-1">
           <WeatherWidget locationName={weatherLocation} />
-        </div>
+        </MotionItem>
 
         {/* Top Recommendation Highlight Card */}
-        <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col justify-between">
+        <MotionItem className="lg:col-span-2">
+          <Card className="h-full flex flex-col justify-between dashboard-card-hover">
             <div>
               <CardHeader>
                 <div>
@@ -221,12 +231,12 @@ export const FarmerDashboard: React.FC = () => {
 
               {topRec ? (
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-3.5">
                       <img
                         src={topRec.crop.image_url || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=80'}
                         alt={topRec.crop.name}
-                        className="w-16 h-16 rounded-2xl object-cover shadow-sm"
+                        className="w-16 h-16 rounded-2xl object-cover shadow-sm transition-transform duration-300 hover:scale-105"
                       />
                       <div>
                         <h4 className="font-extrabold text-base text-slate-900">{topRec.crop.name}</h4>
@@ -246,31 +256,49 @@ export const FarmerDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Multi-parameter scoring pills */}
+                  {/* Multi-parameter scoring pills with visual progress bars */}
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.soilCompatibility', 'Soil')}</span>
                       <span className="font-bold text-slate-800">{topRec.soil_score}%</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full dashboard-progress-bar" style={{ width: `${topRec.soil_score}%` }} />
+                      </div>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-sky-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.climateSuitability', 'Climate')}</span>
                       <span className="font-bold text-slate-800">{topRec.climate_score}%</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-sky-500 rounded-full dashboard-progress-bar" style={{ width: `${topRec.climate_score}%` }} />
+                      </div>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.waterScore', 'Water')}</span>
                       <span className="font-bold text-slate-800">{topRec.water_score}%</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-teal-500 rounded-full dashboard-progress-bar" style={{ width: `${topRec.water_score}%` }} />
+                      </div>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-amber-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.marketScore', 'Market')}</span>
                       <span className="font-bold text-slate-800">{topRec.market_score}%</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full dashboard-progress-bar" style={{ width: `${topRec.market_score}%` }} />
+                      </div>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.profitScore', 'Profit')}</span>
                       <span className="font-bold text-slate-800">{topRec.profit_score}%</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-emerald-600 rounded-full dashboard-progress-bar" style={{ width: `${topRec.profit_score}%` }} />
+                      </div>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-purple-200 transition-colors">
                       <span className="text-[10px] text-slate-400 block">{t('farmer.riskScore', 'Risk')}</span>
                       <span className="font-bold text-emerald-600">{t('farmer.lowRisk', 'Low')} ({topRec.risk_score}%)</span>
+                      <div className="w-full h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full dashboard-progress-bar" style={{ width: `${100 - topRec.risk_score}%` }} />
+                      </div>
                     </div>
                   </div>
 
@@ -300,94 +328,105 @@ export const FarmerDashboard: React.FC = () => {
               </Link>
             </div>
           </Card>
-        </div>
+        </MotionItem>
       </div>
 
-      {/* Quick Action Hub */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Link to="/farmer/recommendations" className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition group">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <h4 className="font-bold text-sm text-slate-900">{t('farmer.cropRecs', 'Crop Recommendations')}</h4>
-          <p className="text-xs text-slate-500 mt-0.5">{t('farmer.cropRecsDesc', 'Scientific AI scoring engine')}</p>
-        </Link>
+      {/* Quick Action Hub with Staggered Entrance and Micro-Interactions */}
+      <MotionGrid className="grid grid-cols-2 sm:grid-cols-4 gap-4" staggerDelay={0.06}>
+        <MotionCard hoverEffect={false}>
+          <Link to="/farmer/recommendations" className="block p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition-all group dashboard-card-hover h-full">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">{t('farmer.cropRecs', 'Crop Recommendations')}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{t('farmer.cropRecsDesc', 'Scientific AI scoring engine')}</p>
+          </Link>
+        </MotionCard>
 
-        <Link to="/farmer/doctor" className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition group">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Stethoscope className="w-5 h-5" />
-          </div>
-          <h4 className="font-bold text-sm text-slate-900">{t('farmer.cropDoctor', 'Crop Doctor (AI)')}</h4>
-          <p className="text-xs text-slate-500 mt-0.5">{t('farmer.cropDoctorDesc', 'Scan leaf diseases & pests')}</p>
-        </Link>
+        <MotionCard hoverEffect={false}>
+          <Link to="/farmer/doctor" className="block p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition-all group dashboard-card-hover h-full">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <Stethoscope className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-purple-700 transition-colors">{t('farmer.cropDoctor', 'Crop Doctor (AI)')}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{t('farmer.cropDoctorDesc', 'Scan leaf diseases & pests')}</p>
+          </Link>
+        </MotionCard>
 
-        <Link to="/farmer/equipment" className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition group">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Layers className="w-5 h-5" />
-          </div>
-          <h4 className="font-bold text-sm text-slate-900">{t('farmer.machineryMaps', 'Machinery & Maps')}</h4>
-          <p className="text-xs text-slate-500 mt-0.5">{t('farmer.machineryMapsDesc', 'Tractor rentals & local dealers')}</p>
-        </Link>
+        <MotionCard hoverEffect={false}>
+          <Link to="/farmer/equipment" className="block p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition-all group dashboard-card-hover h-full">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <Layers className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-amber-700 transition-colors">{t('farmer.machineryMaps', 'Machinery & Maps')}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{t('farmer.machineryMapsDesc', 'Tractor rentals & local dealers')}</p>
+          </Link>
+        </MotionCard>
 
-        <Link to="/farmer/sales" className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition group">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <ShoppingBag className="w-5 h-5" />
-          </div>
-          <h4 className="font-bold text-sm text-slate-900">{t('farmer.directSales', 'Direct Farm Sales')}</h4>
-          <p className="text-xs text-slate-500 mt-0.5">{t('farmer.directSalesDesc', 'List produce & manage orders')}</p>
-        </Link>
-      </div>
+        <MotionCard hoverEffect={false}>
+          <Link to="/farmer/sales" className="block p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-agri-500 hover:shadow-md transition-all group dashboard-card-hover h-full">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-sky-700 transition-colors">{t('farmer.directSales', 'Direct Farm Sales')}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{t('farmer.directSalesDesc', 'List produce & manage orders')}</p>
+          </Link>
+        </MotionCard>
+      </MotionGrid>
 
       {/* Mandi Intelligence Overview */}
-      <Card>
-        <CardHeader>
-          <div>
-            <Badge variant="blue" size="sm">{t('farmer.mandiIntelligence', 'APMC MANDI INTELLIGENCE')}</Badge>
-            <CardTitle className="mt-1 text-lg">{t('farmer.regionalMarketPrices', 'Regional Market Spot Prices')}</CardTitle>
-            <CardDescription>{t('farmer.liveWholesaleUpdates', 'Live wholesale price updates across major North Indian mandis')}</CardDescription>
-          </div>
-          <Link to="/farmer/market">
-            <Button variant="outline" size="sm" icon={TrendingUp}>
-              {t('farmer.fullMarketIntelligence', 'Full Market Intelligence')}
-            </Button>
-          </Link>
-        </CardHeader>
+      <MotionItem>
+        <Card className="dashboard-card-hover">
+          <CardHeader>
+            <div>
+              <Badge variant="blue" size="sm">{t('farmer.mandiIntelligence', 'APMC MANDI INTELLIGENCE')}</Badge>
+              <CardTitle className="mt-1 text-lg">{t('farmer.regionalMarketPrices', 'Regional Market Spot Prices')}</CardTitle>
+              <CardDescription>{t('farmer.liveWholesaleUpdates', 'Live wholesale price updates across major North Indian mandis')}</CardDescription>
+            </div>
+            <Link to="/farmer/market">
+              <Button variant="outline" size="sm" icon={TrendingUp}>
+                {t('farmer.fullMarketIntelligence', 'Full Market Intelligence')}
+              </Button>
+            </Link>
+          </CardHeader>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100 uppercase text-[10px]">
-              <tr>
-                <th className="py-3 px-4">{t('farmer.commodity', 'Commodity')}</th>
-                <th className="py-3 px-4">{t('farmer.mandiMarket', 'Mandi / Market')}</th>
-                <th className="py-3 px-4">{t('farmer.modalPrice', 'Modal Price (₹/Qtl)')}</th>
-                <th className="py-3 px-4">{t('farmer.priceKg', 'Price / kg')}</th>
-                <th className="py-3 px-4">{t('farmer.change7d', '7-Day Change')}</th>
-                <th className="py-3 px-4">{t('farmer.dataType', 'Data Type')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {recentPrices.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/80 transition">
-                  <td className="py-3 px-4 font-bold text-slate-900">{p.commodity}</td>
-                  <td className="py-3 px-4">{p.market_name} ({p.state})</td>
-                  <td className="py-3 px-4 font-mono font-bold">₹{p.modal_price_per_quintal}</td>
-                  <td className="py-3 px-4 font-mono text-emerald-700 font-bold">₹{p.price_per_kg}/kg</td>
-                  <td className="py-3 px-4">
-                    <span className={`font-bold ${p.price_change_7d_percent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {p.price_change_7d_percent >= 0 ? '+' : ''}{p.price_change_7d_percent}%
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant={p.data_type === 'LIVE' ? 'green' : 'slate'} size="sm">
-                      {p.data_type}
-                    </Badge>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100 uppercase text-[10px]">
+                <tr>
+                  <th className="py-3 px-4">{t('farmer.commodity', 'Commodity')}</th>
+                  <th className="py-3 px-4">{t('farmer.mandiMarket', 'Mandi / Market')}</th>
+                  <th className="py-3 px-4">{t('farmer.modalPrice', 'Modal Price (₹/Qtl)')}</th>
+                  <th className="py-3 px-4">{t('farmer.priceKg', 'Price / kg')}</th>
+                  <th className="py-3 px-4">{t('farmer.change7d', '7-Day Change')}</th>
+                  <th className="py-3 px-4">{t('farmer.dataType', 'Data Type')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {recentPrices.map((p) => (
+                  <tr key={p.id} className="dashboard-table-row">
+                    <td className="py-3 px-4 font-bold text-slate-900">{p.commodity}</td>
+                    <td className="py-3 px-4">{p.market_name} ({p.state})</td>
+                    <td className="py-3 px-4 font-mono font-bold">₹{p.modal_price_per_quintal}</td>
+                    <td className="py-3 px-4 font-mono text-emerald-700 font-bold">₹{p.price_per_kg}/kg</td>
+                    <td className="py-3 px-4">
+                      <span className={`font-bold inline-flex items-center gap-0.5 ${p.price_change_7d_percent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {p.price_change_7d_percent >= 0 ? '+' : ''}{p.price_change_7d_percent}%
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge variant={p.data_type === 'LIVE' ? 'green' : 'slate'} size="sm">
+                        {p.data_type === 'LIVE' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-pulse mr-1" />}
+                        {p.data_type}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </MotionItem>
+    </MotionPage>
   );
 };

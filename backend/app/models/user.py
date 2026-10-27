@@ -167,3 +167,32 @@ class ShopkeeperProfile(Base):
 
     user = relationship("User", back_populates="shopkeeper_profile")
     shops = relationship("Shop", back_populates="owner", cascade="all, delete-orphan")
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String(255), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User")
+
+class PhoneOTPVerification(Base):
+    __tablename__ = "phone_otp_verifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(String(100), unique=True, index=True, nullable=False)
+    phone_number = Column(String(50), index=True, nullable=False)
+    otp_hmac = Column(String(255), nullable=False)
+    attempts_count = Column(Integer, default=0, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    is_consumed = Column(Boolean, default=False, nullable=False)
+    verification_token = Column(String(255), unique=True, index=True, nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    verified_at = Column(DateTime, nullable=True)
+    token_expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+

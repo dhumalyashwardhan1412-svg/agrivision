@@ -1,36 +1,85 @@
-# Frontend
+# =========================================================
+# FRONTEND (React / Vite)
+# =========================================================
 frontend/node_modules/
 frontend/dist/
 frontend/.env
-frontend/.env.local
+frontend/.env.*
+!frontend/.env.example
 
-# Backend
+# =========================================================
+# BACKEND (FastAPI / Python)
+# =========================================================
 backend/.venv/
 backend/venv/
 backend/__pycache__/
+backend/**/__pycache__/
 backend/.env
+backend/.env.*
 
-# Python
-__pycache__/
-*.py[cod]
-
-# Environment files
+# =========================================================
+# ENVIRONMENT FILES AND SECRETS
+# =========================================================
 .env
 .env.*
 !.env.example
 
-# IDE
-.vscode/
-.idea/
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
 
-# Logs
-*.log
+# =========================================================
+# PYTHON BUILD AND TEST ARTIFACTS
+# =========================================================
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
 
-# Database
+# =========================================================
+# DATABASES
+# =========================================================
 *.db
 *.sqlite
 *.sqlite3
 
-# OS
+# =========================================================
+# USER UPLOADS
+# =========================================================
+backend/uploads/
+
+# =========================================================
+# LOGS
+# =========================================================
+*.log
+logs/
+
+# =========================================================
+# IDE AND EDITORS
+# =========================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================================================
+# OPERATING SYSTEM FILES
+# =========================================================
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# =========================================================
+# TEMPORARY FILES
+# =========================================================
+*.tmp
+*.temp

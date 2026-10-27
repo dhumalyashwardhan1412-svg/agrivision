@@ -14,6 +14,7 @@ import { AgriVisionIntro } from '../pages/intro/AgriVisionIntro';
 import { LandingPage } from '../pages/landing/LandingPage';
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
+import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { MarketplaceBrowse } from '../pages/customer/MarketplaceBrowse';
 import { MarketIntelligence } from '../pages/farmer/MarketIntelligence';
 import { CropDoctor } from '../pages/farmer/CropDoctor';
@@ -77,11 +78,14 @@ export const AppRoutes: React.FC = () => {
       {/* Glyph Portal Interactive Start/Intro Page */}
       <Route path="/" element={<AgriVisionIntro />} />
 
+      {/* Standalone Full-Screen Premium Authentication Page */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
       {/* Public Pages wrapped in MainLayout */}
       <Route element={<MainLayout />}>
         <Route path="/home" element={<LandingPage />} />
         <Route path="/landing" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/marketplace" element={<MarketplaceBrowse />} />
         <Route path="/markets" element={<MarketIntelligence />} />

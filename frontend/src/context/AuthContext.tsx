@@ -8,6 +8,7 @@ interface AuthContextType {
   role: UserRole | null;
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<any>;
+  loginWithGoogle: (credential: string) => Promise<any>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   quickDemoLogin: (role: UserRole) => Promise<void>;
@@ -74,6 +75,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    setIsLoading(true);
+    try {
+      const res = await authApi.googleLogin(credential);
+      localStorage.setItem('agrivision_token', res.access_token);
+      localStorage.setItem('agrivision_role', res.role);
+      setToken(res.access_token);
+      setRole(res.role);
+      await fetchCurrentUser();
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const register = async (payload: RegisterPayload) => {
     setIsLoading(true);
     try {
@@ -120,6 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         role,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         quickDemoLogin,

@@ -263,7 +263,7 @@ def test_registration_roles_and_admin_blocking():
         json={
             "email": f"hacker_{uuid.uuid4().hex[:6]}@test.com",
             "password": "Password@123",
-            "full_name": "Rogue Admin 2",
+            "full_name": "Rogue Admin Two",
             "role": "admin"
         }
     )
@@ -352,7 +352,7 @@ def test_farmer_registration_data_synchronization_and_isolation():
             "email": email_a,
             "password": "Password@123",
             "full_name": "Test Farmer",
-            "phone_number": "+91 98220 12345",
+            "phone_number": "9822012345",
             "role": "FARMER",
             "state": "Maharashtra",
             "district": "Pune",
@@ -396,7 +396,7 @@ def test_farmer_registration_data_synchronization_and_isolation():
             "email": email_b,
             "password": "Password@123",
             "full_name": "Second Farmer",
-            "phone_number": "+91 98220 67890",
+            "phone_number": "9822067890",
             "role": "FARMER",
             "state": "Gujarat",
             "district": "Surat",

@@ -1,0 +1,167 @@
+/**
+ * AgriVision Dashboard Enhanced Animation Stylesheet
+ * 
+ * Reversible animation utilities for Farmer, Buyer, Dealer, and Admin dashboards.
+ * Fully supports prefers-reduced-motion and runtime animation toggling.
+ */
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes status-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes badge-glow-sky {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(14, 165, 233, 0);
+  }
+}
+
+@keyframes badge-glow-purple {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(168, 85, 247, 0);
+  }
+}
+
+/* Micro-interaction utility classes */
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+.animate-float-gentle {
+  animation: float-gentle 3.5s ease-in-out infinite;
+}
+
+.status-dot-pulse {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  animation: status-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-dot-pulse-sky {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  animation: badge-glow-sky 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-dot-pulse-purple {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  animation: badge-glow-purple 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Hover Elevation & Smooth Shadow Utilities */
+.dashboard-card-hover {
+  transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.2, 0, 0, 1), border-color 0.22s ease;
+}
+
+.dashboard-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Nav Item Hover Indicator */
+.dashboard-nav-item {
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.dashboard-nav-item:hover {
+  transform: translateX(3px);
+}
+
+/* Interactive Table Row Hover */
+.dashboard-table-row {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.dashboard-table-row:hover {
+  background-color: rgba(248, 250, 252, 0.95);
+}
+
+/* Progress bar fill transition */
+.dashboard-progress-bar {
+  transition: width 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========================================================================== */
+/* REVERSIBILITY AND ACCESSIBILITY OVERRIDES                                  */
+/* When animations are disabled or reduced motion is active, cancel effects. */
+/* ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-pulse-subtle,
+  .animate-float-gentle,
+  .status-dot-pulse,
+  .status-dot-pulse-sky,
+  .status-dot-pulse-purple {
+    animation: none !important;
+  }
+  .dashboard-card-hover:hover,
+  .dashboard-nav-item:hover {
+    transform: none !important;
+  }
+}
+
+/* Global Switch Disable Selector */
+[data-animations="false"],
+.no-animations {
+  --tw-translate-x: 0 !important;
+  --tw-translate-y: 0 !important;
+  --tw-scale-x: 1 !important;
+  --tw-scale-y: 1 !important;
+}
+
+[data-animations="false"] *,
+.no-animations * {
+  animation: none !important;
+  transition: none !important;
+}
