@@ -12,6 +12,7 @@ export interface GlyphPortalProps {
   focusChar?: string;
   interactive?: boolean;
   background?: React.ReactNode;
+  heroLandscape?: React.ReactNode;
   front?: React.ReactNode;
   children?: React.ReactNode;
   scrollLength?: number;
@@ -24,7 +25,7 @@ export interface GlyphPortalProps {
   onProgress?: (progress: number) => void;
 }
 
-const DEFAULT_FALLBACK_FONT = '"Arial Black", "Arial", sans-serif';
+const DEFAULT_FALLBACK_FONT = '"Plus Jakarta Sans", "Inter", "Arial Black", "Segoe UI", sans-serif';
 
 function clamp(val: number, min: number = 0, max: number = 1): number {
   return Math.min(max, Math.max(min, val));
@@ -93,6 +94,7 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
   focusChar,
   interactive = true,
   background,
+  heroLandscape,
   front,
   children,
   scrollLength = 2.4,
@@ -177,7 +179,7 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
         }
       });
       glyphText.style.fontFamily = [...validFamilies, DEFAULT_FALLBACK_FONT].join(',');
-      fontTimedOut = validFamilies.length < familyParts.length;
+      fontTimedOut = validFamilies.length === 0;
     }
 
     const readInk = (): boolean => {
@@ -310,6 +312,16 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
       container.style.setProperty('--gp-caption-hit', p < 0.08 ? 'auto' : 'none');
       container.dataset.gpEntered = String(p >= 0.9);
       container.dataset.gpProgress = p.toFixed(5);
+      container.style.setProperty('--gp-progress', p.toFixed(5));
+      const natureFade = isReduced ? 1 : 1 - smooth(0.48, 0.74, p);
+      container.style.setProperty('--gp-nature-fade', String(natureFade));
+      const horizonEmergence = smooth(0.012, 0.22, p);
+      const horizonDissolve = 1 - smooth(0.45, 0.74, p);
+      const horizonProgress = isReduced ? 0 : horizonEmergence * horizonDissolve;
+      container.style.setProperty('--gp-horizon-opacity', horizonProgress.toFixed(4));
+      container.style.setProperty('--gp-horizon-parallax', (p * 50).toFixed(2) + 'px');
+      const paperBlend = isReduced ? 0 : smooth(0.14, 0.68, p);
+      container.style.setProperty('--gp-paper-blend', paperBlend.toFixed(4));
 
       if (p !== lastProgress) {
         lastProgress = p;
@@ -353,6 +365,12 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
 
       container.style.setProperty('--gp-word-top', `${viewHeight * 0.46 - (bbox.height * fontScale) / 2}px`);
       container.style.setProperty('--gp-word-bottom', `${viewHeight * 0.46 + (bbox.height * fontScale) / 2}px`);
+      const wordWidth = bbox.width * fontScale;
+      const wordLeft = viewWidth / 2 - wordWidth / 2;
+      const wordRight = viewWidth / 2 + wordWidth / 2;
+      container.style.setProperty('--gp-word-width', `${wordWidth}px`);
+      container.style.setProperty('--gp-word-left', `${wordLeft}px`);
+      container.style.setProperty('--gp-word-right', `${wordRight}px`);
       container.dataset.gpReady = 'true';
       container.dataset.gpMotion = !mediaReducedMotion.matches && frameReady && !fontTimedOut && currentTarget ? 'on' : 'off';
     };
@@ -491,7 +509,7 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
     >
       <style>{`
         ${scopeSelector} {
-          --gp-paper: #ffffff;
+          --gp-paper: linear-gradient(180deg, #cde5fa 0%, #dbeffe 25%, #eef6fd 50%, #fcfbf6 75%, #fffdf5 100%);
           --gp-ink: #071f16;
           --gp-field: #0b3b2a;
           --gp-foreground: #f8faf8;
@@ -517,10 +535,33 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
           isolation: isolate;
           container-type: size;
         }
-        ${scopeSelector} [data-gp-field] {
+        ${scopeSelector} [data-gp-pin]::before {
+          content: '';
           position: absolute;
           inset: 0;
-          background: var(--gp-field);
+          pointer-events: none;
+          background: radial-gradient(
+            circle at 50% 65%,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(20, 87, 63, 0.25) 45%,
+            rgba(11, 59, 42, 0.5) 80%,
+            rgba(7, 31, 22, 0.85) 100%
+          );
+          opacity: var(--gp-paper-blend, 0);
+          transition: opacity 0.05s linear;
+          z-index: 1;
+        }
+        ${scopeSelector} [data-gp-landscape] {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 1;
+        }${scopeSelector} [data-gp-field] {
+          z-index: 3;
+          filter: drop-shadow(0 12px 20px rgba(2, 44, 18, 0.6)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 20px rgba(74, 222, 128, 0.25));
+          position: absolute;
+          inset: 0;
+          background: transparent;
           opacity: 0;
           pointer-events: none;
         }
@@ -613,6 +654,7 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
           visibility: hidden;
         }
         ${scopeSelector} [data-gp-caption] {
+          z-index: 10;
           position: absolute;
           inset: auto 8% 9%;
           display: flex;
@@ -624,10 +666,16 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
           pointer-events: var(--gp-caption-hit, auto);
         }
         ${scopeSelector} [data-gp-front] {
+          z-index: 4;
           position: absolute;
           inset: 0;
-          opacity: var(--gp-caption, 1);
           pointer-events: none;
+        }
+        ${scopeSelector} [data-gp-front] > *:not([data-agri-persistent]) {
+          opacity: var(--gp-caption, 1);
+        }
+        ${scopeSelector} [data-gp-front] [data-agri-persistent] {
+          opacity: var(--gp-nature-fade, 1);
         }
         ${scopeSelector} [data-gp-front] a,
         ${scopeSelector} [data-gp-front] button {
@@ -724,6 +772,7 @@ export const GlyphPortal: React.FC<GlyphPortalProps> = ({
 
       <div data-gp-viewport aria-hidden="true" />
       <div data-gp-pin>
+        {heroLandscape && <div data-gp-landscape>{heroLandscape}</div>}
         <div data-gp-field aria-hidden="true" tabIndex={-1}>
           {background ?? (
             <div

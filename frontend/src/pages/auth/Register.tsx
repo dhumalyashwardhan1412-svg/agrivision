@@ -312,11 +312,14 @@ export const Register: React.FC = () => {
       return;
     }
 
+    // Phone OTP Verification temporarily bypassed due to SMS gateway issues
+    /*
     if (!phoneVerificationToken || otpStatus !== 'verified') {
       setError(t('auth.verifyPhoneFirst', 'Please verify your phone number with SMS OTP before creating your account.'));
       setTouched(prev => ({ ...prev, phone: true }));
       return;
     }
+    */
 
     setIsLoading(true);
 
@@ -326,7 +329,7 @@ export const Register: React.FC = () => {
         password,
         full_name: fullName.trim(),
         phone_number: phone.trim(),
-        phone_verification_token: phoneVerificationToken,
+        // phone_verification_token: phoneVerificationToken, // Temporarily disabled
         role,
         state: state.trim(),
         district: district.trim(),
@@ -618,197 +621,20 @@ export const Register: React.FC = () => {
                     maxLength={100}
                     required
                   />
-                  {/* Phone Number Field with Send OTP Button & Verification State */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-700 tracking-wide flex items-center justify-between">
-                      <span>{t('auth.phone', 'Phone Number')} <span className="text-red-500">*</span></span>
-                      {otpStatus === 'verified' && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {t('auth.verified', 'Verified')}
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex gap-2 items-center">
-                      <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                          <Phone className="w-4 h-4 text-emerald-600" />
-                        </div>
-                        <input
-                          type="tel"
-                          inputMode="numeric"
-                          value={phone}
-                          onChange={(e) => handlePhoneChange(e.target.value)}
-                          onBlur={() => handleBlur('phone', phone)}
-                          placeholder="9876543210"
-                          maxLength={10}
-                          disabled={otpStatus === 'verified'}
-                          className={`w-full rounded-xl border bg-white pl-10 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:text-slate-600 shadow-2xs ${
-                            touched.phone && fieldErrors.phone
-                              ? 'border-red-400 focus:ring-red-400/20 focus:border-red-500'
-                              : otpStatus === 'verified'
-                              ? 'border-emerald-400 bg-emerald-50/20 focus:ring-emerald-600/20 focus:border-emerald-600'
-                              : 'border-slate-300 focus:ring-emerald-600/20 focus:border-emerald-600'
-                          }`}
-                          required
-                        />
-                      </div>
-
-                      {otpStatus !== 'verified' ? (
-                        <button
-                          type="button"
-                          onClick={handleSendOTP}
-                          disabled={otpStatus === 'sending' || phone.length !== 10}
-                          className="h-[42px] px-3.5 bg-[#166534] hover:bg-emerald-800 active:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0"
-                        >
-                          {otpStatus === 'sending' ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Sending...</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              <span>Send OTP</span>
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpStatus('idle');
-                            setPhoneVerificationToken('');
-                            setOtpCode('');
-                            setOtpError(null);
-                            setOtpSuccess(null);
-                          }}
-                          className="h-[42px] px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 shrink-0"
-                          title="Change Phone Number"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Change</span>
-                        </button>
-                      )}
-                    </div>
-                    {touched.phone && fieldErrors.phone && (
-                      <p className="text-xs text-red-600 font-medium mt-1">{fieldErrors.phone}</p>
-                    )}
-                  </div>
+                  <Input
+                    label={t('auth.phone', 'Phone Number')}
+                    type="tel"
+                    inputMode="numeric"
+                    icon={Phone}
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    onBlur={() => handleBlur('phone', phone)}
+                    error={touched.phone ? fieldErrors.phone : undefined}
+                    placeholder="9876543210"
+                    maxLength={10}
+                    required
+                  />
                 </div>
-
-                {/* OTP Verification Interactive Card */}
-                <AnimatePresence>
-                  {(otpStatus === 'sent' || otpStatus === 'verifying') && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, y: -6 }}
-                      animate={{ opacity: 1, height: 'auto', y: 0 }}
-                      exit={{ opacity: 0, height: 0, y: -6 }}
-                      className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-300 shadow-sm space-y-3 overflow-hidden"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs">
-                            <Key className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                              <span>Enter 6-Digit Verification Code</span>
-                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">SMS OTP</span>
-                            </h4>
-                            <p className="text-[11px] text-slate-500">
-                              Sent to <span className="font-semibold text-slate-800">+91 ******{phone.slice(-4)}</span>
-                            </p>
-                          </div>
-                        </div>
-                        {expiresSeconds > 0 && (
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/70 px-2.5 py-1 rounded-lg border border-amber-300/70">
-                            <Clock className="w-3 h-3 text-amber-700" />
-                            <span>Expires in {formatTime(expiresSeconds)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                        <div className="relative flex-1">
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            maxLength={6}
-                            value={otpCode}
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/\D/g, '').slice(0, 6);
-                              setOtpCode(v);
-                              if (otpError) setOtpError(null);
-                            }}
-                            placeholder="••••••"
-                            className="w-full h-11 px-4 text-center tracking-[0.6em] font-mono text-lg font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 transition-all text-slate-900 placeholder:tracking-widest placeholder:text-slate-400 shadow-2xs"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={handleVerifyOTP}
-                            disabled={otpCode.length !== 6 || otpStatus === 'verifying'}
-                            className="flex-1 sm:flex-none h-11 px-5 bg-[#166534] hover:bg-emerald-800 active:bg-emerald-950 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
-                          >
-                            {otpStatus === 'verifying' ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>Verifying...</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Confirm OTP</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleSendOTP}
-                            disabled={cooldownSeconds > 0}
-                            className="h-11 px-3.5 bg-white border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 shrink-0"
-                          >
-                            {cooldownSeconds > 0 ? (
-                              <span className="text-[11px] font-mono text-slate-500">Resend ({cooldownSeconds}s)</span>
-                            ) : (
-                              <>
-                                <RefreshCw className="w-3 h-3 text-slate-500" />
-                                <span className="text-[11px]">Resend</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {otpError && (
-                        <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium flex items-center gap-2">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
-                          <span>{otpError}</span>
-                        </div>
-                      )}
-
-                      {otpSuccess && (
-                        <div className="p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-xs text-emerald-800 font-medium flex items-center gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-                          <span>{otpSuccess}</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Verified success notification banner */}
-                {otpStatus === 'verified' && (
-                  <div className="p-3 rounded-xl bg-emerald-50/90 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Mobile number <strong>+91 {phone}</strong> has been successfully verified via OTP.</span>
-                  </div>
-                )}
                 <Input
                   label={t('auth.email', 'Email Address')}
                   type="email"

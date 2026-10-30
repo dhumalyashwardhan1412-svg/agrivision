@@ -2,46 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sprout, Handshake, ChartNoAxesCombined, ArrowRight, LogIn, Compass } from 'lucide-react';
 import GlyphPortal from '../../components/ui/glyph-portal';
+import { HeroNatureDecorations } from '../../components/landing/HeroNatureDecorations';
+import heroLandscapeField from '../../assets/hero-landscape-field.jpg';
 
-const family = '"Glyph Portal Jakarta", Arial, sans-serif';
-let fontLoad: Promise<void> | undefined;
+const family = '"Plus Jakarta Sans", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif';
 
 export const AgriVisionIntro: React.FC = () => {
   const navigate = useNavigate();
-  const [face, setFace] = useState<string | null>(null);
+  const [face, setFace] = useState<string>(family);
 
   useEffect(() => {
-    let settled = false;
-    const finish = (value: string) => {
-      if (!settled) {
-        settled = true;
-        setFace(value);
-      }
-    };
-
-    try {
-      fontLoad ??= new FontFace(
-        'Glyph Portal Jakarta',
-        'url("https://cdn.21st.dev/assets/mirror/15/153fc85b70298beeb1d61a5f723331649e7f23bb77302a66e61cb3e2fbdb5e79.woff2")',
-        { weight: '400 700 900' }
-      )
-        .load()
-        .then((font) => {
-          document.fonts.add(font);
-        });
-
-      const timeout = window.setTimeout(() => finish('Arial, sans-serif'), 1500);
-      void fontLoad.then(
-        () => finish(family),
-        () => finish('Arial, sans-serif')
-      );
-
-      return () => {
-        settled = true;
-        clearTimeout(timeout);
-      };
-    } catch {
-      finish('Arial, sans-serif');
+    setFace(family);
+    if (document.fonts) {
+      document.fonts.ready.then(() => setFace(family)).catch(() => {});
     }
   }, []);
 
@@ -64,30 +37,32 @@ export const AgriVisionIntro: React.FC = () => {
     >
       <style>{`
         [data-agrivision-portal] [data-gp-caption] {
-          inset: calc(var(--gp-word-bottom, 50%) + 82px) 24px auto;
+          inset: calc(var(--gp-word-bottom, 50%) + 62px) 24px auto;
           justify-content: center;
+          z-index: 10;
         }
         [data-agrivision-portal] [data-gp-hint] {
           display: none;
         }
         [data-agrivision-portal] [data-gp-enter] {
-          min-height: 48px;
-          padding: 0 24px;
-          gap: 16px;
-          background: #0b3b2a;
-          border: 1px solid #14573f;
-          border-radius: 12px;
+          min-height: 44px;
+          padding: 0 28px;
+          gap: 10px;
+          background: linear-gradient(135deg, #0b4528 0%, #15803d 100%);
+          border: 1px solid rgba(74, 222, 128, 0.45);
+          border-radius: 9999px;
           color: #f8faf8;
           font-size: 14px;
-          font-weight: 600;
-          box-shadow: 0 4px 14px rgba(7, 31, 22, 0.45);
-          transition: all 0.2s ease;
+          font-weight: 700;
+          box-shadow: 0 6px 20px rgba(11, 69, 40, 0.45), 0 0 14px rgba(34, 197, 94, 0.25);
+          transition: all 0.25s ease;
+          z-index: 10;
         }
         [data-agrivision-portal] [data-gp-enter]:hover {
-          background: #14573f;
-          border-color: #22c55e;
-          box-shadow: 0 6px 20px rgba(34, 197, 94, 0.25);
-          transform: translateY(-1px);
+          background: linear-gradient(135deg, #0e5632 0%, #16a34a 100%);
+          border-color: #4ade80;
+          box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+          transform: translateY(-1px) scale(1.02);
         }
         [data-agrivision-portal] [data-gp-enter]:focus-visible {
           outline: 2px solid #22c55e;
@@ -135,34 +110,40 @@ export const AgriVisionIntro: React.FC = () => {
         }
         [data-agri-eyebrow] {
           position: absolute;
-          inset: auto 24px calc(100% - var(--gp-word-top, 35%) + 28px);
+          inset: auto 24px calc(100% - var(--gp-word-top, 35%) + 18px);
           margin: 0;
           text-align: center;
-          font-size: clamp(13px, 1.6vw, 15px);
-          font-weight: 600;
-          letter-spacing: 0.08em;
+          font-size: clamp(12px, 1.4vw, 15px);
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #14573f;
+          text-shadow: 0 1px 8px rgba(255, 255, 255, 0.95);
+          z-index: 5;
         }
         [data-agri-support] {
           position: absolute;
-          inset: calc(var(--gp-word-bottom, 50%) + 24px) 24px auto;
+          inset: calc(var(--gp-word-bottom, 50%) + 18px) 24px auto;
           margin: 0;
           text-align: center;
-          font-size: clamp(15px, 2vw, 18px);
-          font-weight: 500;
+          font-size: clamp(15px, 1.8vw, 21px);
+          font-weight: 700;
           line-height: 1.4;
-          color: #1e3a2f;
+          color: #0b4028;
+          text-shadow: 0 1px 12px rgba(255, 255, 255, 0.95), 0 0 5px rgba(255, 255, 255, 0.9);
+          z-index: 5;
         }
         [data-agri-secondary] {
           position: absolute;
-          inset: calc(var(--gp-word-bottom, 50%) + 52px) 24px auto;
+          inset: calc(var(--gp-word-bottom, 50%) + 18px) 24px auto;
           margin: 0;
           text-align: center;
-          font-size: clamp(12px, 1.4vw, 14px);
-          font-weight: 400;
-          letter-spacing: 0.02em;
-          color: #4a6b5d;
+          font-size: clamp(15px, 1.8vw, 21px);
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          color: #0b4028;
+          text-shadow: 0 1px 12px rgba(255, 255, 255, 0.95), 0 0 5px rgba(255, 255, 255, 0.9);
+          z-index: 5;
         }
         [data-agri-scroll] {
           position: absolute;
@@ -191,7 +172,7 @@ export const AgriVisionIntro: React.FC = () => {
             font-size: 14px;
           }
           [data-agri-secondary] {
-            display: none;
+            font-size: 14px;
           }
           [data-agrivision-portal] [data-gp-caption] {
             top: calc(var(--gp-word-bottom, 50%) + 68px);
@@ -209,6 +190,92 @@ export const AgriVisionIntro: React.FC = () => {
           }
           [data-agri-scroll] {
             display: none;
+          }
+        }
+        [data-agri-light-sweep] {
+          position: absolute;
+          inset: -40% -60%;
+          pointer-events: none;
+          background: linear-gradient(
+            115deg,
+            transparent 26%,
+            rgba(34, 197, 94, 0.15) 38%,
+            rgba(74, 222, 128, 0.65) 47%,
+            rgba(255, 255, 255, 0.95) 50%,
+            rgba(167, 243, 208, 0.85) 53%,
+            rgba(34, 197, 94, 0.45) 58%,
+            rgba(20, 87, 63, 0.15) 65%,
+            transparent 76%
+          );
+          transform: translateX(-140%);
+          animation: agriTitleLightSweep 5.6s cubic-bezier(0.25, 1, 0.35, 1) 0.8s infinite;
+          mix-blend-mode: screen;
+        }
+        @keyframes agriTitleLightSweep {
+          0% {
+            transform: translateX(-140%) skewX(-14deg);
+            opacity: 0;
+          }
+          8% {
+            opacity: 1;
+          }
+          40% {
+            transform: translateX(140%) skewX(-14deg);
+            opacity: 1;
+          }
+          46%, 100% {
+            transform: translateX(140%) skewX(-14deg);
+            opacity: 0;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [data-agri-light-sweep] {
+            animation: none !important;
+            display: none !important;
+          }
+        }
+        [data-agri-scroll-indicator] {
+          position: absolute;
+          bottom: 22px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+          z-index: 10;
+          pointer-events: none;
+        }
+        [data-agri-mouse-icon] {
+          width: 18px;
+          height: 28px;
+          border: 1.8px solid rgba(255, 255, 255, 0.9);
+          border-radius: 12px;
+          display: flex;
+          justify-content: center;
+          padding-top: 5px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        }
+        [data-agri-mouse-wheel] {
+          width: 2.5px;
+          height: 6px;
+          background: #ffffff;
+          border-radius: 2px;
+          animation: mouseWheelBob 1.8s ease-in-out infinite;
+        }
+        @keyframes mouseWheelBob {
+          0%, 100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          50% {
+            transform: translateY(5px);
+            opacity: 0.35;
           }
         }
         [data-agrivision-portal] [data-gp-content] {
@@ -304,8 +371,7 @@ export const AgriVisionIntro: React.FC = () => {
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 2rem;
           }
-        }
-      `}</style>
+        }`}</style>
 
       <GlyphPortal
         word="AGRIVISION"
@@ -316,16 +382,118 @@ export const AgriVisionIntro: React.FC = () => {
         fontFamily={face ?? 'Arial, sans-serif'}
         fontWeight={900}
         style={{ fontFamily: face ?? 'Arial, sans-serif' }}
-        background={
+        heroLandscape={
           <div
+            data-agri-landscape-layer
             style={{
               position: 'absolute',
               inset: 0,
-              transform: 'scale(var(--gp-field-scale, 1))',
-              background:
-                'radial-gradient(circle at 18% 8%, rgba(34, 197, 94, 0.45), transparent 38%), radial-gradient(circle at 82% 20%, rgba(20, 87, 63, 0.5), transparent 30%), radial-gradient(circle at 48% 78%, rgba(7, 31, 22, 0.9), transparent 50%), linear-gradient(135deg, #071f16 0%, #0b3b2a 45%, #14573f 80%, #061a12 100%)',
+              overflow: 'hidden',
+              pointerEvents: 'none',
             }}
-          />
+          >
+            {/* Soft Azure Morning Breeze at upper-left */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '55%',
+                height: '55%',
+                background:
+                  'radial-gradient(circle at 18% 18%, rgba(186, 230, 253, 0.55) 0%, transparent 65%)',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Morning Sun flare & rays from upper right */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-5%',
+                right: '-5%',
+                width: 'clamp(380px, 52vw, 780px)',
+                height: 'clamp(380px, 52vw, 780px)',
+                background:
+                  'radial-gradient(circle at 65% 35%, rgba(254, 240, 138, 0.8) 0%, rgba(250, 204, 21, 0.4) 22%, rgba(74, 222, 128, 0.12) 48%, transparent 72%)',
+                filter: 'blur(15px)',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Pristine Green Agricultural Terraces & Valley from reference image */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 'auto 0 0 0',
+                height: 'clamp(380px, 62svh, 640px)',
+                backgroundImage: 'url(' + heroLandscapeField + ')',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center bottom',
+                backgroundRepeat: 'no-repeat',
+                maskImage: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 4%, black 14%, black 100%)',
+                WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 4%, black 14%, black 100%)',
+                filter: 'saturate(1.15) contrast(1.05) brightness(1.02)',
+                opacity: 'var(--gp-nature-fade, 1)',
+                transform: 'translateY(calc(var(--gp-progress, 0) * -45px))',
+                transition: 'transform 0.08s linear',
+                willChange: 'transform, opacity',
+                zIndex: 2,
+              }}
+            />
+          </div>
+        }
+        background={
+          <div
+            data-agri-glyph-background
+            style={{
+              position: 'absolute',
+              inset: 0,
+              overflow: 'hidden',
+              transform: 'scale(var(--gp-field-scale, 1))',
+              background: '#071f16',
+            }}
+          >
+            {/* The Vibrant Letter Gradient Container positioned across the word */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(var(--gp-word-top, 38%) - 12px)',
+                bottom: 'calc(100% - var(--gp-word-bottom, 54%) - 12px)',
+                left: 0,
+                right: 0,
+                background:
+                  'linear-gradient(180deg, #4ade80 0%, #22c55e 14%, #16a34a 32%, #15803d 58%, #14532d 82%, #052e16 100%)',
+              }}
+            >
+              {/* Organic Sunlight Bursts on letters matching reference image */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background:
+                    'radial-gradient(circle at 74% 28%, rgba(254, 240, 138, 0.55) 0%, rgba(134, 239, 172, 0.4) 18%, rgba(34, 197, 94, 0.15) 38%, transparent 60%), radial-gradient(circle at 32% 32%, rgba(187, 247, 208, 0.35) 0%, transparent 45%)',
+                  pointerEvents: 'none',
+                }}
+              />
+              {/* Animated Light Sweep */}
+              <div data-agri-light-sweep />
+            </div>
+
+            {/* Transition into Section 2 dark canopy during scroll zoom */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(circle at 18% 8%, rgba(34, 197, 94, 0.45), transparent 38%), radial-gradient(circle at 82% 20%, rgba(20, 87, 63, 0.5), transparent 30%), radial-gradient(circle at 48% 78%, rgba(7, 31, 22, 0.9), transparent 50%), linear-gradient(135deg, #071f16 0%, #0b3b2a 45%, #14573f 80%, #061a12 100%)',
+                opacity: 'calc(var(--gp-progress, 0) * 1.8)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         }
         front={
           <>
@@ -351,11 +519,20 @@ export const AgriVisionIntro: React.FC = () => {
               </div>
               <span data-agri-badge>Smart Agriculture Ecosystem</span>
             </header>
+            <HeroNatureDecorations />
 
             <p data-agri-eyebrow>The Future of Farming Starts Here.</p>
-            <p data-agri-support>Smart Farming. Connected Markets. Better Decisions.</p>
             <p data-agri-secondary>Grow Smarter. Sell Better. Earn More.</p>
-            <span data-agri-scroll>Scroll to explore ↓</span>
+
+            <div data-agri-scroll-indicator>
+              <div data-agri-mouse-icon>
+                <div data-agri-mouse-wheel />
+              </div>
+              <span>Scroll to explore</span>
+              <svg width="12" height="7" viewBox="0 0 12 7" fill="none">
+                <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           </>
         }
       >

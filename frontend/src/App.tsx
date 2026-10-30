@@ -8,6 +8,17 @@ import { StartupAnimation } from './components/startup/StartupAnimation';
 export function App() {
   const [showStartup, setShowStartup] = useState<boolean>(() => {
     // Check if animation has already played in this browser session
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('intro') || params.has('replay')) {
+        return true;
+      }
+      // Re-trigger if user reloaded the landing page
+      const navEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined;
+      if (navEntry?.type === 'reload' && (window.location.pathname === '/' || window.location.pathname === '/home')) {
+        return true;
+      }
+    }
     const hasPlayed = sessionStorage.getItem('agrivision_intro_played');
     return !hasPlayed;
   });

@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     OTP_RESEND_COOLDOWN_SECONDS: int = 60
     OTP_RATE_LIMIT_PER_HOUR: int = 5
     OTP_SECRET_KEY: str = Field(min_length=32)
-    REQUIRE_PHONE_VERIFICATION: bool = True
+    REQUIRE_PHONE_VERIFICATION: bool = False  # Temporarily disabled - SMS delivery issues
 
     # CORS
     BACKEND_CORS_ORIGINS: Union[List[str], str] = [
